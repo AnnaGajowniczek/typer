@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useSession, signOut } from 'next-auth/react'
+import { useEffect, useRef, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import Header from '@/components/Header'
 
 type Match = {
   id: number
@@ -30,8 +31,8 @@ function formatDate(iso: string) {
   })
 }
 
-function isLocked(starts_at: string) {
-  return new Date(starts_at) <= new Date()
+function isLocked(starts_at: string, status: string) {
+  return new Date(starts_at) <= new Date() || status === 'finished'
 }
 
 export default function TypowaniePage() {
@@ -40,8 +41,9 @@ export default function TypowaniePage() {
 
   const [rounds, setRounds] = useState<Round[]>([])
   const [scores, setScores] = useState<ScoreMap>({})
-  const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState('')
+  const [savingId, setSavingId] = useState<number | null>(null)
+  const [savedId, setSavedId] = useState<number | null>(null)
+  const debounceRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
 
   useEffect(() => {
     fetch('/api/matches').then(r => r.json()).then(setRounds)
@@ -60,69 +62,48 @@ export default function TypowaniePage() {
       })
   }, [userId])
 
-  function setScore(matchId: number, side: 'home' | 'away', value: string) {
-    const val = value.replace(/\D/g, '').slice(0, 2)
-    setScores(prev => ({
-      ...prev,
-      [matchId]: {
-        home: prev[matchId]?.home ?? '',
-        away: prev[matchId]?.away ?? '',
-        [side]: val,
-      },
-    }))
-  }
-
-  async function handleSave() {
-    if (!userId) return
-    setSaving(true)
-    const predictions = Object.entries(scores).map(([match_id, s]) => ({
-      match_id: Number(match_id),
-      home_score: s.home,
-      away_score: s.away,
-    }))
+  async function saveOne(matchId: number, home: string, away: string) {
+    if (!userId || home === '' || away === '') return
+    setSavingId(matchId)
     await fetch('/api/predictions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, predictions }),
+      body: JSON.stringify({
+        user_id: userId,
+        predictions: [{ match_id: matchId, home_score: home, away_score: away }],
+      }),
     })
-    setSaving(false)
-    setToast('Typy zapisane!')
-    setTimeout(() => setToast(''), 3000)
+    setSavingId(null)
+    setSavedId(matchId)
+    setTimeout(() => setSavedId(id => id === matchId ? null : id), 2000)
+  }
+
+  function setScore(matchId: number, side: 'home' | 'away', value: string) {
+    const val = value.replace(/\D/g, '').slice(0, 2)
+    setScores(prev => {
+      const updated = {
+        ...prev,
+        [matchId]: {
+          home: prev[matchId]?.home ?? '',
+          away: prev[matchId]?.away ?? '',
+          [side]: val,
+        },
+      }
+      const { home, away } = updated[matchId]
+
+      clearTimeout(debounceRef.current[matchId])
+      debounceRef.current[matchId] = setTimeout(() => saveOne(matchId, home, away), 800)
+
+      return updated
+    })
   }
 
   const filledCount = Object.values(scores).filter(s => s.home !== '' && s.away !== '').length
   const totalMatches = rounds.reduce((n, r) => n + r.matches.length, 0)
 
   return (
-    <main className="min-h-screen bg-[#eff1f9] text-[#434351] pb-28">
-      {/* Nagłówek */}
-      <div className="bg-white/90 sticky top-0 z-10 border-b border-[#2e3192]/10 backdrop-blur">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <img src="/logo-itss.png" alt="ITSS" className="h-8" />
-          <div className="ml-auto flex items-center gap-4">
-            <a href="/ranking" className="text-sm text-[#434351]/50 hover:text-[#434351] transition">
-              Ranking
-            </a>
-            {session?.user?.isAdmin && (
-              <a href="/admin" className="text-sm text-[#434351]/50 hover:text-[#434351] transition">
-                Admin
-              </a>
-            )}
-            <span className="text-[#2e3192] text-sm">
-              {session?.user?.name}
-            </span>
-            <span className="text-[#434351]/50 text-sm">
-              {filledCount}/{totalMatches} typów
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: '/logowanie' })}
-              className="text-xs text-[#434351]/50 hover:text-[#434351] transition"
-            >
-              Wyloguj
-            </button>
-          </div>
-        </div>
-      </div>
+    <main className="min-h-screen bg-[#eff1f9] text-[#434351] pb-16">
+      <Header />
 
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-8">
         {rounds.map(round => (
@@ -136,9 +117,11 @@ export default function TypowaniePage() {
 
             <div className="space-y-2">
               {round.matches.map(match => {
-                const locked = isLocked(match.starts_at)
+                const locked = isLocked(match.starts_at, match.status)
                 const score = scores[match.id] ?? { home: '', away: '' }
                 const filled = score.home !== '' && score.away !== ''
+                const isSaving = savingId === match.id
+                const isSaved = savedId === match.id
 
                 return (
                   <div
@@ -147,11 +130,11 @@ export default function TypowaniePage() {
                       locked
                         ? 'bg-[#2e3192]/[0.03] opacity-60'
                         : filled
-                        ? 'bg-[#2e3192]/8 border border-[#2e3192]/30'
-                        : 'bg-[#2e3192]/[0.04] border border-[#2e3192]/10'
+                        ? 'bg-[#2e3192]/[0.06] border border-[#2e3192]/20'
+                        : 'bg-[#2e3192]/[0.03] border border-[#2e3192]/10'
                     }`}
                   >
-                    <div className="text-xs text-[#434351]/50 w-20 shrink-0 hidden sm:block">
+                    <div className="text-xs text-[#434351]/40 w-20 shrink-0 hidden sm:block">
                       {formatDate(match.starts_at)}
                     </div>
 
@@ -174,9 +157,9 @@ export default function TypowaniePage() {
                           value={score.home}
                           onChange={e => setScore(match.id, 'home', e.target.value)}
                           placeholder="–"
-                          className="w-9 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] disabled:cursor-not-allowed placeholder-[#434351]/30 transition"
+                          className="w-9 h-9 text-center text-lg font-bold bg-white border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] disabled:cursor-not-allowed disabled:bg-[#2e3192]/[0.03] placeholder-[#434351]/20 transition"
                         />
-                        <span className="text-[#434351]/50 font-bold">:</span>
+                        <span className="text-[#434351]/40 font-bold">:</span>
                         <input
                           type="text"
                           inputMode="numeric"
@@ -184,7 +167,7 @@ export default function TypowaniePage() {
                           value={score.away}
                           onChange={e => setScore(match.id, 'away', e.target.value)}
                           placeholder="–"
-                          className="w-9 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] disabled:cursor-not-allowed placeholder-[#434351]/30 transition"
+                          className="w-9 h-9 text-center text-lg font-bold bg-white border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] disabled:cursor-not-allowed disabled:bg-[#2e3192]/[0.03] placeholder-[#434351]/20 transition"
                         />
                       </div>
 
@@ -193,14 +176,15 @@ export default function TypowaniePage() {
                       </span>
                     </div>
 
-                    {locked && <span className="text-[#434351]/40 text-xs shrink-0">🔒</span>}
-                    <a
-                      href={`/mecze/${match.id}`}
-                      className="text-[#434351]/25 hover:text-[#434351]/60 transition shrink-0"
-                      title="Podgląd typów"
-                    >
-                      👁
-                    </a>
+                    <div className="w-5 shrink-0 text-center">
+                      {locked
+                        ? <span className="text-[#434351]/30 text-xs">🔒</span>
+                        : isSaving
+                        ? <span className="text-[#434351]/30 text-xs animate-pulse">…</span>
+                        : isSaved
+                        ? <span className="text-[#2e3192] text-xs">✓</span>
+                        : null}
+                    </div>
                   </div>
                 )
               })}
@@ -209,17 +193,11 @@ export default function TypowaniePage() {
         ))}
       </div>
 
-      {/* Przycisk zapisu */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#eff1f9]/90 backdrop-blur border-t border-[#2e3192]/10 p-4">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
-          {toast && <span className="text-[#2e3192] text-sm font-medium">{toast}</span>}
-          <button
-            onClick={handleSave}
-            disabled={saving || filledCount === 0}
-            className="ml-auto bg-[#2e3192] hover:bg-blue-900 disabled:opacity-40 text-white font-semibold px-8 py-2.5 rounded-xl transition"
-          >
-            {saving ? 'Zapisywanie…' : `Zapisz typy (${filledCount})`}
-          </button>
+      {/* Pasek statusu */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-[#2e3192]/10 px-4 py-2">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <span className="text-xs text-[#434351]/50">Typy zapisują się automatycznie</span>
+          <span className="text-sm text-[#434351]/50">{filledCount}/{totalMatches} typów</span>
         </div>
       </div>
     </main>

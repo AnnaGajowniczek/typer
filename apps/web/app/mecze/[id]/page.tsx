@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import Header from '@/components/Header'
 
 type Match = {
   id: number
@@ -86,21 +87,13 @@ export default function MatchPage() {
 
   return (
     <main className="min-h-screen bg-[#eff1f9] text-[#434351] pb-12">
-      {/* Nagłówek */}
-      <div className="bg-white/90 sticky top-0 z-10 border-b border-[#2e3192]/10 backdrop-blur">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <img src="/logo-itss.png" alt="ITSS" className="h-7 mr-1" />
-          <a href="/typowanie" className="text-[#434351]/50 hover:text-[#434351] transition text-sm">
-            ← Typowanie
-          </a>
-          <span className="text-[#434351]/25">/</span>
-          <span className="text-sm text-[#434351]/60">{match.round_name}</span>
-          {session?.user?.isAdmin && (
-            <a href="/admin" className="ml-auto text-sm text-[#434351]/50 hover:text-[#434351] transition">
-              Admin
-            </a>
-          )}
-        </div>
+      <Header />
+
+      {/* Breadcrumb */}
+      <div className="max-w-2xl mx-auto px-4 pt-4 pb-0 flex items-center gap-2 text-sm text-[#434351]/50">
+        <a href="/typowanie" className="hover:text-[#434351] transition">← Typowanie</a>
+        <span>/</span>
+        <span className="text-[#434351]/60">{match.round_name}</span>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pt-8 space-y-6">

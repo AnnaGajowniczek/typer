@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import Header from '@/components/Header'
 
 type Player = {
   id: string
@@ -80,35 +81,22 @@ export default function RankingPage() {
 
   return (
     <main className="min-h-screen bg-[#eff1f9] text-[#434351] pb-12">
-      {/* Nagłówek */}
-      <div className="bg-white/90 sticky top-0 z-10 border-b border-[#2e3192]/10 backdrop-blur">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <img src="/logo-itss.png" alt="ITSS" className="h-8" />
-          <div className="ml-auto flex items-center gap-4">
-            <a href="/typowanie" className="text-sm text-[#434351]/50 hover:text-[#434351] transition">
-              Typowanie
-            </a>
-            {session?.user?.isAdmin && (
-              <a href="/admin" className="text-sm text-[#434351]/50 hover:text-[#434351] transition">
-                Admin
-              </a>
-            )}
-          </div>
-        </div>
+      <Header />
 
-        {/* Zakładki */}
-        <div className="max-w-2xl mx-auto px-4 flex gap-1 pb-0">
+      {/* Zakładki */}
+      <div className="bg-white/90 border-b border-[#2e3192]/10">
+        <div className="max-w-2xl mx-auto px-4 flex gap-1">
           {(['ranking', 'mecze'] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition capitalize ${
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
                 tab === t
                   ? 'border-[#2e3192] text-[#2e3192]'
                   : 'border-transparent text-[#434351]/50 hover:text-[#434351]'
               }`}
             >
-              {t === 'ranking' ? 'Ranking' : 'Mecze'}
+              {t === 'ranking' ? 'Gracze' : 'Mecze'}
             </button>
           ))}
         </div>

@@ -27,10 +27,12 @@ export async function POST(req: NextRequest) {
       if (home_score === '' || away_score === '' || home_score == null || away_score == null) continue
 
       const { rows } = await client.query(
-        'SELECT starts_at FROM matches WHERE id = $1',
+        'SELECT starts_at, status FROM matches WHERE id = $1',
         [match_id]
       )
-      if (!rows[0] || new Date(rows[0].starts_at) <= new Date()) continue
+      if (!rows[0]) continue
+      if (new Date(rows[0].starts_at) <= new Date()) continue
+      if (rows[0].status === 'finished') continue
 
       await client.query(
         `INSERT INTO predictions (user_id, match_id, home_score, away_score)

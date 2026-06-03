@@ -28,8 +28,23 @@ export async function PATCH(req: NextRequest) {
 
   const { match_id, home_score, away_score, status } = await req.json()
 
-  if (match_id == null || home_score == null || away_score == null) {
+  if (match_id == null) {
     return NextResponse.json({ error: 'Nieprawidłowe dane.' }, { status: 400 })
+  }
+
+  // Sprawdź czy mecz już się rozpoczął — wyniki można wpisywać tylko po rozpoczęciu
+  const { rows: matchRows } = await pool.query(
+    'SELECT starts_at FROM matches WHERE id = $1',
+    [match_id]
+  )
+  if (!matchRows[0]) {
+    return NextResponse.json({ error: 'Mecz nie istnieje.' }, { status: 404 })
+  }
+  const matchStarted = new Date(matchRows[0].starts_at) <= new Date()
+
+  // Jeśli przesyłane są wyniki (nie tylko zmiana statusu) — zablokuj dla przyszłych meczów
+  if ((home_score != null || away_score != null) && !matchStarted) {
+    return NextResponse.json({ error: 'Mecz jeszcze się nie rozpoczął.' }, { status: 403 })
   }
 
   const client = await pool.connect()

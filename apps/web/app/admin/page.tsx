@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Header from '@/components/Header'
 
 type Match = {
   id: number
@@ -69,7 +70,7 @@ export default function AdminPage() {
     const e = edits[matchId]
     const o = original[matchId]
     if (!e || !o) return false
-    return e.home !== o.home || e.away !== o.away || e.status !== o.status
+    return e.home !== o.home || e.away !== o.away
   }
 
   function update(matchId: number, field: keyof MatchEdit, value: string) {
@@ -77,6 +78,24 @@ export default function AdminPage() {
       ...prev,
       [matchId]: { ...prev[matchId], [field]: value },
     }))
+  }
+
+  async function toggleStatus(matchId: number) {
+    const e = edits[matchId]
+    if (!e) return
+    const newStatus = e.status === 'finished' ? 'upcoming' : 'finished'
+    update(matchId, 'status', newStatus)
+    setOriginal(prev => ({ ...prev, [matchId]: { ...prev[matchId], status: newStatus } }))
+    await fetch('/api/admin/matches', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        match_id:   matchId,
+        home_score: e.home !== '' ? Number(e.home) : null,
+        away_score: e.away !== '' ? Number(e.away) : null,
+        status:     newStatus,
+      }),
+    })
   }
 
   async function saveMatch(matchId: number) {
@@ -109,16 +128,7 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-[#eff1f9] text-[#434351] pb-12">
-      {/* Nagłówek */}
-      <div className="bg-white border-b border-[#2e3192]/10 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
-          <img src="/logo-itss.png" alt="ITSS" className="h-7" />
-          <span className="text-[#434351]/50 text-sm">MŚ 2026 — wyniki meczów</span>
-          <a href="/typowanie" className="ml-auto text-sm text-[#434351]/50 hover:text-[#434351] transition">
-            ← Wróć
-          </a>
-        </div>
-      </div>
+      <Header />
 
       <div className="max-w-4xl mx-auto px-4 pt-6 space-y-8">
         {rounds.map(round => (
@@ -137,6 +147,7 @@ export default function AdminPage() {
                 const isSaved  = saved  === match.id
                 const hasResult = e.home !== '' && e.away !== ''
                 const changed = hasChanged(match.id)
+                const matchStarted = new Date(match.starts_at) <= new Date()
 
                 return (
                   <div
@@ -164,23 +175,25 @@ export default function AdminPage() {
                       <span className="text-sm font-medium text-right flex-1 truncate">
                         {match.home_team}
                       </span>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0" title={!matchStarted ? 'Mecz jeszcze się nie rozpoczął' : ''}>
                         <input
                           type="text"
                           inputMode="numeric"
+                          disabled={!matchStarted}
                           value={e.home}
                           onChange={ev => update(match.id, 'home', ev.target.value.replace(/\D/g, '').slice(0, 2))}
                           placeholder="–"
-                          className="w-10 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] placeholder-[#434351]/30 transition"
+                          className="w-10 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] placeholder-[#434351]/30 disabled:opacity-30 disabled:cursor-not-allowed transition"
                         />
                         <span className="text-[#434351]/50 font-bold">:</span>
                         <input
                           type="text"
                           inputMode="numeric"
+                          disabled={!matchStarted}
                           value={e.away}
                           onChange={ev => update(match.id, 'away', ev.target.value.replace(/\D/g, '').slice(0, 2))}
                           placeholder="–"
-                          className="w-10 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] placeholder-[#434351]/30 transition"
+                          className="w-10 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] placeholder-[#434351]/30 disabled:opacity-30 disabled:cursor-not-allowed transition"
                         />
                       </div>
                       <span className="text-sm font-medium text-left flex-1 truncate">
@@ -191,7 +204,7 @@ export default function AdminPage() {
                     {/* Zakończony */}
                     <label className="flex items-center gap-1.5 shrink-0 cursor-pointer select-none">
                       <div
-                        onClick={() => update(match.id, 'status', e.status === 'finished' ? 'upcoming' : 'finished')}
+                        onClick={() => toggleStatus(match.id)}
                         className={`w-10 h-6 rounded-full transition-colors relative ${
                           e.status === 'finished' ? 'bg-[#2e3192]' : 'bg-[#2e3192]/20'
                         }`}
