@@ -31,6 +31,7 @@ export default function Header() {
         <div className="flex items-center gap-4 ml-6">
           {navLink('/typowanie', 'Typowanie')}
           {navLink('/ranking', 'Ranking')}
+          {navLink('/mecze-lista', 'Mecze')}
           {session?.user?.isAdmin && navLink('/admin', 'Panel administracyjny')}
         </div>
 
