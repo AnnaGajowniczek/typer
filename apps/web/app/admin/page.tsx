@@ -39,6 +39,7 @@ export default function AdminPage() {
   const router = useRouter()
   const [rounds, setRounds] = useState<Round[]>([])
   const [edits, setEdits] = useState<EditMap>({})
+  const [original, setOriginal] = useState<EditMap>({})
   const [saving, setSaving] = useState<number | null>(null)
   const [saved, setSaved] = useState<number | null>(null)
 
@@ -60,8 +61,16 @@ export default function AdminPage() {
         }
       }
       setEdits(initial)
+      setOriginal(initial)
     })
   }, [])
+
+  function hasChanged(matchId: number): boolean {
+    const e = edits[matchId]
+    const o = original[matchId]
+    if (!e || !o) return false
+    return e.home !== o.home || e.away !== o.away || e.status !== o.status
+  }
 
   function update(matchId: number, field: keyof MatchEdit, value: string) {
     setEdits(prev => ({
@@ -86,6 +95,7 @@ export default function AdminPage() {
     })
     setSaving(null)
     setSaved(matchId)
+    setOriginal(prev => ({ ...prev, [matchId]: edits[matchId] }))
     setTimeout(() => setSaved(null), 2000)
   }
 
@@ -126,6 +136,7 @@ export default function AdminPage() {
                 const isSaving = saving === match.id
                 const isSaved  = saved  === match.id
                 const hasResult = e.home !== '' && e.away !== ''
+                const changed = hasChanged(match.id)
 
                 return (
                   <div
@@ -197,7 +208,7 @@ export default function AdminPage() {
                     {/* Przycisk */}
                     <button
                       onClick={() => saveMatch(match.id)}
-                      disabled={isSaving || !hasResult}
+                      disabled={isSaving || !hasResult || !changed}
                       className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition shrink-0 ${
                         isSaved
                           ? 'bg-[#2e3192] text-white'
