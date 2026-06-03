@@ -33,12 +33,6 @@ function formatDate(iso: string) {
   })
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  upcoming: 'Nierozegrany',
-  live:     'W trakcie',
-  finished: 'Zakończony',
-  cancelled:'Odwołany',
-}
 
 export default function AdminPage() {
   const { data: session, status } = useSession()
@@ -138,9 +132,7 @@ export default function AdminPage() {
                     key={match.id}
                     className={`rounded-xl px-4 py-3 flex items-center gap-3 border transition ${
                       e.status === 'finished'
-                        ? 'bg-[#2e3192]/[0.03] border-[#2e3192]/10'
-                        : e.status === 'live'
-                        ? 'bg-amber-900/20 border-[#2e3192]/25'
+                        ? 'bg-[#2e3192]/[0.06] border-[#2e3192]/20'
                         : 'bg-[#2e3192]/[0.03] border-[#2e3192]/10'
                     }`}
                   >
@@ -185,16 +177,22 @@ export default function AdminPage() {
                       </span>
                     </div>
 
-                    {/* Status */}
-                    <select
-                      value={e.status}
-                      onChange={ev => update(match.id, 'status', ev.target.value)}
-                      className="text-xs bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg px-2 py-1.5 text-[#434351] focus:outline-none focus:border-[#2e3192] shrink-0"
-                    >
-                      {Object.entries(STATUS_LABELS).map(([val, label]) => (
-                        <option key={val} value={val}>{label}</option>
-                      ))}
-                    </select>
+                    {/* Zakończony */}
+                    <label className="flex items-center gap-1.5 shrink-0 cursor-pointer select-none">
+                      <div
+                        onClick={() => update(match.id, 'status', e.status === 'finished' ? 'upcoming' : 'finished')}
+                        className={`w-10 h-6 rounded-full transition-colors relative ${
+                          e.status === 'finished' ? 'bg-[#2e3192]' : 'bg-[#2e3192]/20'
+                        }`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                          e.status === 'finished' ? 'left-5' : 'left-1'
+                        }`} />
+                      </div>
+                      <span className="text-xs text-[#434351]/60 hidden sm:block">
+                        {e.status === 'finished' ? 'Zakończony' : 'Nierozegrany'}
+                      </span>
+                    </label>
 
                     {/* Przycisk */}
                     <button
