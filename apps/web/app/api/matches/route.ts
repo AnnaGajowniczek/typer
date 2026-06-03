@@ -1,0 +1,51 @@
+import { NextResponse } from 'next/server'
+import pool from '@/lib/db'
+
+export async function GET() {
+  const { rows } = await pool.query(`
+    SELECT
+      m.id,
+      m.starts_at,
+      m.status,
+      m.home_score,
+      m.away_score,
+      ht.name AS home_team,
+      at_.name AS away_team,
+      r.id AS round_id,
+      r.name AS round_name,
+      r.stage,
+      r.order_nr,
+      g.name AS group_name
+    FROM matches m
+    JOIN teams ht  ON ht.id  = m.home_team_id
+    JOIN teams at_ ON at_.id = m.away_team_id
+    JOIN rounds r  ON r.id   = m.round_id
+    LEFT JOIN groups g ON g.id = ht.group_id
+    ORDER BY r.order_nr, m.starts_at
+  `)
+
+  const roundMap: Record<number, { id: number; name: string; stage: string; order_nr: number; matches: unknown[] }> = {}
+  for (const row of rows) {
+    if (!roundMap[row.round_id]) {
+      roundMap[row.round_id] = {
+        id: row.round_id,
+        name: row.round_name,
+        stage: row.stage,
+        order_nr: row.order_nr,
+        matches: [],
+      }
+    }
+    roundMap[row.round_id].matches.push({
+      id: row.id,
+      starts_at: row.starts_at,
+      status: row.status,
+      home_team: row.home_team,
+      away_team: row.away_team,
+      home_score: row.home_score,
+      away_score: row.away_score,
+      group_name: row.group_name,
+    })
+  }
+
+  return NextResponse.json(Object.values(roundMap))
+}
