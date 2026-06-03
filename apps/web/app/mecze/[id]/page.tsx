@@ -137,7 +137,7 @@ export default function MatchPage() {
 
         {/* Info o widoczności */}
         {!revealed && (
-          <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-xl px-4 py-3 text-sm text-yellow-300/80 text-center">
+          <div className="bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-xl px-4 py-3 text-sm text-[#2e3192] text-center">
             Typy innych graczy zostaną ujawnione po rozpoczęciu meczu.
           </div>
         )}
