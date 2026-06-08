@@ -35,6 +35,16 @@ function isLocked(starts_at: string, status: string) {
   return new Date(starts_at) <= new Date() || status === 'finished'
 }
 
+const STORAGE_KEY = 'typowanie_collapsed_rounds'
+
+function loadCollapsed(): Record<number, boolean> {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
+  } catch {
+    return {}
+  }
+}
+
 export default function TypowaniePage() {
   const { data: session } = useSession()
   const userId = session?.user?.id
@@ -43,7 +53,20 @@ export default function TypowaniePage() {
   const [scores, setScores] = useState<ScoreMap>({})
   const [savingId, setSavingId] = useState<number | null>(null)
   const [savedId, setSavedId] = useState<number | null>(null)
+  const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
   const debounceRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
+
+  useEffect(() => {
+    setCollapsed(loadCollapsed())
+  }, [])
+
+  function toggleRound(roundId: number) {
+    setCollapsed(prev => {
+      const next = { ...prev, [roundId]: !prev[roundId] }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+  }
 
   useEffect(() => {
     fetch('/api/matches').then(r => r.json()).then(setRounds)
@@ -106,16 +129,24 @@ export default function TypowaniePage() {
       <Header />
 
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-8">
-        {rounds.map(round => (
+        {rounds.map(round => {
+          const isCollapsed = !!collapsed[round.id]
+          return (
           <section key={round.id}>
-            <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => toggleRound(round.id)}
+              className="flex items-center gap-3 mb-3 w-full text-left group"
+            >
               <div className="text-xs font-bold uppercase tracking-widest text-[#2e3192]">
                 {round.name}
               </div>
               <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
-            </div>
+              <span className={`text-[#2e3192]/50 text-xs transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`}>
+                ▲
+              </span>
+            </button>
 
-            <div className="space-y-2">
+            {!isCollapsed && <div className="space-y-2">
               {round.matches.map(match => {
                 const locked = isLocked(match.starts_at, match.status)
                 const score = scores[match.id] ?? { home: '', away: '' }
@@ -188,9 +219,10 @@ export default function TypowaniePage() {
                   </div>
                 )
               })}
-            </div>
+            </div>}
           </section>
-        ))}
+          )
+        })}
       </div>
 
       {/* Pasek statusu */}

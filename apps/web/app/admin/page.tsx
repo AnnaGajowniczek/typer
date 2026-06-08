@@ -147,7 +147,6 @@ export default function AdminPage() {
                 const isSaved  = saved  === match.id
                 const hasResult = e.home !== '' && e.away !== ''
                 const changed = hasChanged(match.id)
-                const matchStarted = new Date(match.starts_at) <= new Date()
 
                 return (
                   <div
@@ -175,25 +174,23 @@ export default function AdminPage() {
                       <span className="text-sm font-medium text-right flex-1 truncate">
                         {match.home_team}
                       </span>
-                      <div className="flex items-center gap-1 shrink-0" title={!matchStarted ? 'Mecz jeszcze się nie rozpoczął' : ''}>
+                      <div className="flex items-center gap-1 shrink-0">
                         <input
                           type="text"
                           inputMode="numeric"
-                          disabled={!matchStarted}
                           value={e.home}
                           onChange={ev => update(match.id, 'home', ev.target.value.replace(/\D/g, '').slice(0, 2))}
                           placeholder="–"
-                          className="w-10 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] placeholder-[#434351]/30 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                          className="w-10 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] placeholder-[#434351]/30 transition"
                         />
                         <span className="text-[#434351]/50 font-bold">:</span>
                         <input
                           type="text"
                           inputMode="numeric"
-                          disabled={!matchStarted}
                           value={e.away}
                           onChange={ev => update(match.id, 'away', ev.target.value.replace(/\D/g, '').slice(0, 2))}
                           placeholder="–"
-                          className="w-10 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] placeholder-[#434351]/30 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                          className="w-10 h-9 text-center text-lg font-bold bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg focus:outline-none focus:border-[#2e3192] placeholder-[#434351]/30 transition"
                         />
                       </div>
                       <span className="text-sm font-medium text-left flex-1 truncate">
