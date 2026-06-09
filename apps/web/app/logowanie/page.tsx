@@ -50,7 +50,7 @@ function LoginForm() {
           <h2 className="text-xl font-semibold text-[#434351]">Zaloguj się</h2>
 
           {error && (
-            <div className="bg-red-500/20 border border-red-400 text-red-200 rounded-lg px-4 py-3 text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm">
               {error}
             </div>
           )}

@@ -53,7 +53,7 @@ export default function RegisterPage() {
           <h2 className="text-xl font-semibold text-[#434351]">Utwórz konto</h2>
 
           {error && (
-            <div className="bg-red-500/20 border border-red-400 text-red-200 rounded-lg px-4 py-3 text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm">
               {error}
             </div>
           )}
@@ -105,12 +105,12 @@ export default function RegisterPage() {
               placeholder="wpisz hasło ponownie"
               className={`w-full bg-[#2e3192]/[0.06] border rounded-lg px-4 py-2.5 text-[#434351] placeholder-[#434351]/40 focus:outline-none transition ${
                 passwordMismatch
-                  ? 'border-red-400 focus:border-red-400'
+                  ? 'border-red-400 focus:border-red-300'
                   : 'border-[#2e3192]/20 focus:border-[#2e3192]'
               }`}
             />
             {passwordMismatch && (
-              <p className="text-red-400 text-xs mt-1">Hasła nie są identyczne.</p>
+              <p className="text-red-500 text-xs mt-1">Hasła nie są identyczne.</p>
             )}
           </div>
 
