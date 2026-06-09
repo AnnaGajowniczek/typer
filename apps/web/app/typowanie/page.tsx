@@ -86,8 +86,27 @@ export default function TypowaniePage() {
       })
   }, [userId])
 
+  async function deleteOne(matchId: number) {
+    if (!userId) return
+    await fetch('/api/predictions', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, match_id: matchId }),
+    })
+    setScores(prev => {
+      const next = { ...prev }
+      delete next[matchId]
+      return next
+    })
+  }
+
   async function saveOne(matchId: number, home: string, away: string) {
-    if (!userId || home === '' || away === '') return
+    if (!userId) return
+    if (home === '' && away === '') {
+      await deleteOne(matchId)
+      return
+    }
+    if (home === '' || away === '') return
     setSavingId(matchId)
     await fetch('/api/predictions', {
       method: 'POST',
@@ -215,6 +234,12 @@ export default function TypowaniePage() {
                         ? <span className="text-[#434351]/30 text-xs animate-pulse">…</span>
                         : isSaved
                         ? <span className="text-[#2e3192] text-xs">✓</span>
+                        : filled
+                        ? <button
+                            onClick={() => deleteOne(match.id)}
+                            title="Usuń typ"
+                            className="text-[#434351]/30 hover:text-red-400 text-sm transition leading-none"
+                          >×</button>
                         : null}
                     </div>
                   </div>

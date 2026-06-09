@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Brak dostępu.' }, { status: 403 })
   }
 
-  const { match_id, home_score, away_score, status } = await req.json()
+  const { match_id, home_score, away_score, status, home_team_id, away_team_id } = await req.json()
   if (match_id == null) {
     return NextResponse.json({ error: 'Nieprawidłowe dane.' }, { status: 400 })
   }
@@ -29,10 +29,24 @@ export async function PATCH(req: NextRequest) {
   try {
     await connection.beginTransaction()
 
-    await connection.execute(
-      'UPDATE matches SET home_score = ?, away_score = ?, status = ? WHERE id = ?',
-      [home_score, away_score, status ?? 'finished', match_id]
-    )
+    if (home_team_id !== undefined || away_team_id !== undefined) {
+      await connection.execute(
+        'UPDATE matches SET home_team_id = ?, away_team_id = ? WHERE id = ?',
+        [home_team_id ?? null, away_team_id ?? null, match_id]
+      )
+    }
+
+    if (home_score !== undefined && away_score !== undefined && status !== undefined) {
+      await connection.execute(
+        'UPDATE matches SET home_score = ?, away_score = ?, status = ? WHERE id = ?',
+        [home_score, away_score, status ?? 'finished', match_id]
+      )
+    } else if (status !== undefined) {
+      await connection.execute(
+        'UPDATE matches SET status = ? WHERE id = ?',
+        [status, match_id]
+      )
+    }
 
     if (status === 'finished') {
       const [predictions] = await connection.execute(

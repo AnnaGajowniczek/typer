@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const [rows] = await pool.execute(
     'SELECT match_id, home_score, away_score FROM predictions WHERE user_id = ?',
     [user_id]
-  ) as [import("mysql2").RowDataPacket[], unknown]
+  ) as [RowDataPacket[], unknown]
   return NextResponse.json(rows)
 }
 
@@ -51,4 +51,25 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ message: 'Zapisano.' })
+}
+
+export async function DELETE(req: NextRequest) {
+  const { user_id, match_id } = await req.json()
+  if (!user_id || !match_id) {
+    return NextResponse.json({ error: 'Nieprawidłowe dane.' }, { status: 400 })
+  }
+
+  const [rows] = await pool.execute(
+    'SELECT starts_at, status FROM matches WHERE id = ?',
+    [match_id]
+  ) as [RowDataPacket[], unknown]
+  if (!rows[0] || new Date(rows[0].starts_at) <= new Date() || rows[0].status === 'finished') {
+    return NextResponse.json({ error: 'Nie można usunąć typu dla tego meczu.' }, { status: 403 })
+  }
+
+  await pool.execute(
+    'DELETE FROM predictions WHERE user_id = ? AND match_id = ?',
+    [user_id, match_id]
+  )
+  return NextResponse.json({ message: 'Usunięto.' })
 }

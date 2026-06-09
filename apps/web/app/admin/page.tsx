@@ -10,8 +10,10 @@ type Match = {
   id: number
   starts_at: string
   status: string
-  home_team: string
-  away_team: string
+  home_team: string | null
+  away_team: string | null
+  home_team_id: number | null
+  away_team_id: number | null
   home_score: number | null
   away_score: number | null
   group_name: string | null
@@ -24,7 +26,8 @@ type Round = {
   matches: Match[]
 }
 
-type MatchEdit = { home: string; away: string; status: string }
+type Team = { id: number; name: string; group_name: string | null }
+type MatchEdit = { home: string; away: string; status: string; home_team_id: number | null; away_team_id: number | null }
 type EditMap = Record<number, MatchEdit>
 
 function formatDate(iso: string) {
@@ -40,6 +43,7 @@ export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [rounds, setRounds] = useState<Round[]>([])
+  const [teams, setTeams] = useState<Team[]>([])
   const [edits, setEdits] = useState<EditMap>({})
   const [original, setOriginal] = useState<EditMap>({})
   const [saving, setSaving] = useState<number | null>(null)
@@ -50,15 +54,18 @@ export default function AdminPage() {
   }, [status, router])
 
   useEffect(() => {
+    fetch('/api/teams').then(r => r.json()).then(setTeams)
     fetch('/api/matches').then(r => r.json()).then((rounds: Round[]) => {
       setRounds(rounds)
       const initial: EditMap = {}
       for (const round of rounds) {
         for (const m of round.matches) {
           initial[m.id] = {
-            home:   m.home_score != null ? String(m.home_score) : '',
-            away:   m.away_score != null ? String(m.away_score) : '',
-            status: m.status,
+            home:         m.home_score != null ? String(m.home_score) : '',
+            away:         m.away_score != null ? String(m.away_score) : '',
+            status:       m.status,
+            home_team_id: m.home_team_id,
+            away_team_id: m.away_team_id,
           }
         }
       }
@@ -72,9 +79,10 @@ export default function AdminPage() {
     const o = original[matchId]
     if (!e || !o) return false
     return e.home !== o.home || e.away !== o.away
+      || e.home_team_id !== o.home_team_id || e.away_team_id !== o.away_team_id
   }
 
-  function update(matchId: number, field: keyof MatchEdit, value: string) {
+  function update(matchId: number, field: keyof MatchEdit, value: string | number | null) {
     setEdits(prev => ({
       ...prev,
       [matchId]: { ...prev[matchId], [field]: value },
@@ -101,16 +109,18 @@ export default function AdminPage() {
 
   async function saveMatch(matchId: number) {
     const e = edits[matchId]
-    if (!e || e.home === '' || e.away === '') return
+    if (!e) return
     setSaving(matchId)
     await fetch('/api/admin/matches', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        match_id:   matchId,
-        home_score: Number(e.home),
-        away_score: Number(e.away),
-        status:     e.status,
+        match_id:     matchId,
+        home_score:   e.home !== '' ? Number(e.home) : undefined,
+        away_score:   e.away !== '' ? Number(e.away) : undefined,
+        status:       e.home !== '' && e.away !== '' ? e.status : undefined,
+        home_team_id: e.home_team_id,
+        away_team_id: e.away_team_id,
       }),
     })
     setSaving(null)
@@ -171,9 +181,35 @@ export default function AdminPage() {
                     )}
 
                     {/* Mecz */}
-                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                    <div className="flex-1 flex flex-col gap-2 min-w-0">
+                      {round.stage === 'knockout' && (
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={e.home_team_id ?? ''}
+                            onChange={ev => update(match.id, 'home_team_id', ev.target.value ? Number(ev.target.value) : null)}
+                            className="flex-1 text-xs bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg px-2 py-1.5 text-[#434351] focus:outline-none focus:border-[#2e3192]"
+                          >
+                            <option value="">— gospodarz —</option>
+                            {teams.map(t => (
+                              <option key={t.id} value={t.id}>{t.group_name ? `Gr.${t.group_name} ` : ''}{t.name}</option>
+                            ))}
+                          </select>
+                          <span className="text-[#434351]/30 text-xs shrink-0">vs</span>
+                          <select
+                            value={e.away_team_id ?? ''}
+                            onChange={ev => update(match.id, 'away_team_id', ev.target.value ? Number(ev.target.value) : null)}
+                            className="flex-1 text-xs bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg px-2 py-1.5 text-[#434351] focus:outline-none focus:border-[#2e3192]"
+                          >
+                            <option value="">— gość —</option>
+                            {teams.map(t => (
+                              <option key={t.id} value={t.id}>{t.group_name ? `Gr.${t.group_name} ` : ''}{t.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    <div className="flex items-center gap-2 min-w-0">
                       <span className="text-sm font-medium text-right flex-1 truncate">
-                        <span className="mr-1">{flag(match.home_team)}</span>{match.home_team}
+                        <span className="mr-1">{flag(match.home_team ?? '')}</span>{match.home_team ?? '?'}
                       </span>
                       <div className="flex items-center gap-1 shrink-0">
                         <input
@@ -195,8 +231,9 @@ export default function AdminPage() {
                         />
                       </div>
                       <span className="text-sm font-medium text-left flex-1 truncate">
-                        <span className="mr-1">{flag(match.away_team)}</span>{match.away_team}
+                        <span className="mr-1">{flag(match.away_team ?? '')}</span>{match.away_team ?? '?'}
                       </span>
+                    </div>
                     </div>
 
                     {/* Zakończony */}
