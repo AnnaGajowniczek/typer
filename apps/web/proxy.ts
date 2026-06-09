@@ -5,7 +5,8 @@ import type { NextRequest } from 'next/server'
 const { auth } = NextAuth(authConfig)
 
 export async function proxy(req: NextRequest) {
-  return (auth as (req: NextRequest) => Promise<Response | undefined>)(req)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (auth as unknown as (req: NextRequest) => Promise<Response | undefined>)(req)
 }
 
 export const config = {
