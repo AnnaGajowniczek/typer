@@ -48,6 +48,11 @@ export default function AdminPage() {
   const [original, setOriginal] = useState<EditMap>({})
   const [saving, setSaving] = useState<number | null>(null)
   const [saved, setSaved] = useState<number | null>(null)
+  const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
+
+  function toggleRound(roundId: number) {
+    setCollapsed(prev => ({ ...prev, [roundId]: !prev[roundId] }))
+  }
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/logowanie')
@@ -142,16 +147,24 @@ export default function AdminPage() {
       <Header />
 
       <div className="max-w-4xl mx-auto px-4 pt-6 space-y-8">
-        {rounds.map(round => (
+        {rounds.map(round => {
+          const isCollapsed = !!collapsed[round.id]
+          return (
           <section key={round.id}>
-            <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => toggleRound(round.id)}
+              className="flex items-center gap-3 mb-3 w-full text-left group"
+            >
               <div className="text-xs font-bold uppercase tracking-widest text-[#2e3192]">
                 {round.name}
               </div>
               <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
-            </div>
+              <span className={`text-[#2e3192]/50 text-xs transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`}>
+                ▲
+              </span>
+            </button>
 
-            <div className="space-y-2">
+            {!isCollapsed && <div className="space-y-2">
               {round.matches.map(match => {
                 const e = edits[match.id] ?? { home: '', away: '', status: 'upcoming' }
                 const isSaving = saving === match.id
@@ -268,9 +281,10 @@ export default function AdminPage() {
                   </div>
                 )
               })}
-            </div>
+            </div>}
           </section>
-        ))}
+          )
+        })}
       </div>
     </main>
   )
