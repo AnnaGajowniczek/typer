@@ -146,3 +146,37 @@ FROM (
 JOIN teams ht  ON ht.name  = m.home
 JOIN teams at_ ON at_.name = m.away
 JOIN rounds r  ON r.order_nr = m.rnd;
+
+-- Mecze pucharowe (bez drużyn — admin przypisze po fazie grupowej)
+INSERT INTO matches (round_id, starts_at) VALUES
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-01 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-01 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-02 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-02 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-03 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-03 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-04 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-04 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-05 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-05 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-06 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-06 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-07 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-07 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-08 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-08 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-09 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-09 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-10 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-10 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-11 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-11 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-12 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-12 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=6), '2026-07-14 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=6), '2026-07-14 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=6), '2026-07-15 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=6), '2026-07-15 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=7), '2026-07-18 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=7), '2026-07-19 21:00:00'),
+((SELECT id FROM rounds WHERE order_nr=8), '2026-07-23 21:00:00');
