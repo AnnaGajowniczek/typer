@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Header from '@/components/Header'
+import { flag } from '@/lib/flags'
 
 type Match = {
   id: number
@@ -90,7 +91,7 @@ export default function MeczePage() {
 
                       <div className="flex-1 flex items-center gap-2 min-w-0">
                         <span className="text-sm font-medium text-right flex-1 truncate">
-                          {match.home_team}
+                          <span className="mr-1">{flag(match.home_team)}</span>{match.home_team}
                         </span>
                         <span className="text-sm font-bold shrink-0 tabular-nums text-[#434351]/60">
                           {match.status === 'finished' || match.status === 'live'
@@ -98,7 +99,7 @@ export default function MeczePage() {
                             : '–:–'}
                         </span>
                         <span className="text-sm font-medium text-left flex-1 truncate">
-                          {match.away_team}
+                          <span className="mr-1">{flag(match.away_team)}</span>{match.away_team}
                         </span>
                       </div>
 

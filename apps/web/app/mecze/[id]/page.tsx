@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Header from '@/components/Header'
+import { flag } from '@/lib/flags'
 
 type Match = {
   id: number
@@ -109,7 +110,7 @@ export default function MatchPage() {
 
           {/* Wynik */}
           <div className="flex items-center justify-center gap-6">
-            <span className="text-lg font-bold text-right flex-1">{match.home_team}</span>
+            <span className="text-lg font-bold text-right flex-1">{flag(match.home_team)} {match.home_team}</span>
 
             <div className="flex items-center gap-3 shrink-0">
               {match.status === 'finished' || match.status === 'live' ? (
@@ -123,7 +124,7 @@ export default function MatchPage() {
               )}
             </div>
 
-            <span className="text-lg font-bold text-left flex-1">{match.away_team}</span>
+            <span className="text-lg font-bold text-left flex-1">{flag(match.away_team)} {match.away_team}</span>
           </div>
 
           {match.group_name && (

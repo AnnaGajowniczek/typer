@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
+import { flag } from '@/lib/flags'
 
 type Match = {
   id: number
@@ -172,7 +173,7 @@ export default function AdminPage() {
                     {/* Mecz */}
                     <div className="flex-1 flex items-center gap-2 min-w-0">
                       <span className="text-sm font-medium text-right flex-1 truncate">
-                        {match.home_team}
+                        <span className="mr-1">{flag(match.home_team)}</span>{match.home_team}
                       </span>
                       <div className="flex items-center gap-1 shrink-0">
                         <input
@@ -194,7 +195,7 @@ export default function AdminPage() {
                         />
                       </div>
                       <span className="text-sm font-medium text-left flex-1 truncate">
-                        {match.away_team}
+                        <span className="mr-1">{flag(match.away_team)}</span>{match.away_team}
                       </span>
                     </div>
 
