@@ -3,6 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import pool from '@/lib/db'
 import { authConfig } from '@/auth.config'
+import type { RowDataPacket } from 'mysql2'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -15,10 +16,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const { rows } = await pool.query(
-          'SELECT id, email, display_name, password_hash, is_admin FROM users WHERE email = $1',
-          [credentials.email]
-        )
+        const [rows] = await pool.execute(
+          'SELECT id, email, display_name, password_hash, is_admin FROM users WHERE email = ?',
+          [credentials.email as string]
+        ) as [import("mysql2").RowDataPacket[], unknown]
         const user = rows[0]
         if (!user) return null
 
@@ -29,7 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: String(user.id),
           email: user.email,
           name: user.display_name,
-          isAdmin: user.is_admin,
+          isAdmin: !!user.is_admin,
         }
       },
     }),

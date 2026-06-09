@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import pool from '@/lib/db'
+import type { RowDataPacket } from 'mysql2'
 
 async function requireAdmin() {
   const session = await auth()
-  if (!session?.user || !(session.user as { isAdmin?: boolean }).isAdmin) {
-    return null
-  }
+  if (!session?.user || !(session.user as { isAdmin?: boolean }).isAdmin) return null
   return session
 }
 
-function calcPoints(
-  predHome: number, predAway: number,
-  realHome: number, realAway: number
-): number {
+function calcPoints(predHome: number, predAway: number, realHome: number, realAway: number): number {
   if (predHome === realHome && predAway === realAway) return 3
-  const predOutcome = Math.sign(predHome - predAway)
-  const realOutcome = Math.sign(realHome - realAway)
-  if (predOutcome === realOutcome) return 1
+  if (Math.sign(predHome - predAway) === Math.sign(realHome - realAway)) return 1
   return 0
 }
 
@@ -27,61 +21,57 @@ export async function PATCH(req: NextRequest) {
   }
 
   const { match_id, home_score, away_score, status } = await req.json()
-
   if (match_id == null) {
     return NextResponse.json({ error: 'Nieprawidłowe dane.' }, { status: 400 })
   }
 
-  const client = await pool.connect()
+  const connection = await pool.getConnection()
   try {
-    await client.query('BEGIN')
+    await connection.beginTransaction()
 
-    // 1. Zapisz wynik meczu
-    await client.query(
-      `UPDATE matches SET home_score = $1, away_score = $2, status = $3 WHERE id = $4`,
+    await connection.execute(
+      'UPDATE matches SET home_score = ?, away_score = ?, status = ? WHERE id = ?',
       [home_score, away_score, status ?? 'finished', match_id]
     )
 
-    // 2. Przelicz punkty tylko gdy mecz zakończony
     if (status === 'finished') {
-      const { rows: predictions } = await client.query(
-        `SELECT id, user_id, home_score, away_score FROM predictions WHERE match_id = $1`,
+      const [predictions] = await connection.execute(
+        'SELECT id, user_id, home_score, away_score FROM predictions WHERE match_id = ?',
         [match_id]
-      )
+      ) as [RowDataPacket[], unknown]
 
       for (const p of predictions) {
         const pts = calcPoints(
           Number(p.home_score), Number(p.away_score),
-          Number(home_score),   Number(away_score)
+          Number(home_score), Number(away_score)
         )
-        await client.query(
-          `UPDATE predictions SET points_earned = $1 WHERE id = $2`,
+        await connection.execute(
+          'UPDATE predictions SET points_earned = ? WHERE id = ?',
           [pts, p.id]
         )
       }
 
-      // 3. Zaktualizuj sumę punktów każdego gracza który miał typ w tym meczu
-      const affectedUsers = [...new Set(predictions.map((p: { user_id: number }) => p.user_id))]
+      const affectedUsers = [...new Set(predictions.map((p: RowDataPacket) => p.user_id))]
       for (const userId of affectedUsers) {
-        await client.query(
+        await connection.execute(
           `UPDATE users
            SET points_total = (
              SELECT COALESCE(SUM(points_earned), 0)
              FROM predictions
-             WHERE user_id = $1 AND points_earned IS NOT NULL
+             WHERE user_id = ? AND points_earned IS NOT NULL
            )
-           WHERE id = $1`,
-          [userId]
+           WHERE id = ?`,
+          [userId, userId]
         )
       }
     }
 
-    await client.query('COMMIT')
+    await connection.commit()
   } catch (e) {
-    await client.query('ROLLBACK')
+    await connection.rollback()
     throw e
   } finally {
-    client.release()
+    connection.release()
   }
 
   return NextResponse.json({ message: 'Zaktualizowano.' })

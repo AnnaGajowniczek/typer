@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import pool from '@/lib/db'
+import type { RowDataPacket } from 'mysql2'
 
 export async function GET() {
-  const { rows } = await pool.query(`
+  const [rows] = await pool.execute(`
     SELECT
       m.id,
       m.starts_at,
@@ -20,9 +21,9 @@ export async function GET() {
     JOIN teams ht  ON ht.id  = m.home_team_id
     JOIN teams at_ ON at_.id = m.away_team_id
     JOIN rounds r  ON r.id   = m.round_id
-    LEFT JOIN groups g ON g.id = ht.group_id
+    LEFT JOIN \`groups\` g ON g.id = ht.group_id
     ORDER BY r.order_nr, m.starts_at
-  `)
+  `) as [import("mysql2").RowDataPacket[], unknown]
 
   const roundMap: Record<number, { id: number; name: string; stage: string; order_nr: number; matches: unknown[] }> = {}
   for (const row of rows) {

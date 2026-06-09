@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
+import type { RowDataPacket } from 'mysql2'
 
 export async function GET(req: NextRequest) {
   const user_id = req.nextUrl.searchParams.get('user_id')
   if (!user_id) return NextResponse.json([])
 
-  const { rows } = await pool.query(
-    'SELECT match_id, home_score, away_score FROM predictions WHERE user_id = $1',
+  const [rows] = await pool.execute(
+    'SELECT match_id, home_score, away_score FROM predictions WHERE user_id = ?',
     [user_id]
-  )
+  ) as [import("mysql2").RowDataPacket[], unknown]
   return NextResponse.json(rows)
 }
 
@@ -19,35 +20,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Nieprawidłowe dane.' }, { status: 400 })
   }
 
-  const client = await pool.connect()
+  const connection = await pool.getConnection()
   try {
-    await client.query('BEGIN')
+    await connection.beginTransaction()
     for (const p of predictions) {
       const { match_id, home_score, away_score } = p
       if (home_score === '' || away_score === '' || home_score == null || away_score == null) continue
 
-      const { rows } = await client.query(
-        'SELECT starts_at, status FROM matches WHERE id = $1',
+      const [rows] = await connection.execute(
+        'SELECT starts_at, status FROM matches WHERE id = ?',
         [match_id]
-      )
+      ) as [RowDataPacket[], unknown]
       if (!rows[0]) continue
       if (new Date(rows[0].starts_at) <= new Date()) continue
       if (rows[0].status === 'finished') continue
 
-      await client.query(
+      await connection.execute(
         `INSERT INTO predictions (user_id, match_id, home_score, away_score)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (user_id, match_id) DO UPDATE
-         SET home_score = $3, away_score = $4`,
+         VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE home_score = VALUES(home_score), away_score = VALUES(away_score)`,
         [user_id, match_id, home_score, away_score]
       )
     }
-    await client.query('COMMIT')
+    await connection.commit()
   } catch (e) {
-    await client.query('ROLLBACK')
+    await connection.rollback()
     throw e
   } finally {
-    client.release()
+    connection.release()
   }
 
   return NextResponse.json({ message: 'Zapisano.' })

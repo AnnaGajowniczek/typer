@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import pool from '@/lib/db'
+import type { RowDataPacket } from 'mysql2'
 
 export async function GET(
   _req: NextRequest,
@@ -10,8 +11,7 @@ export async function GET(
   const currentUserId = session?.user?.id
   const { id } = await params
 
-  // Pobierz dane meczu
-  const { rows: matchRows } = await pool.query(`
+  const [matchRows] = await pool.execute(`
     SELECT
       m.id, m.starts_at, m.status, m.home_score, m.away_score,
       ht.name AS home_team, at_.name AS away_team,
@@ -20,9 +20,9 @@ export async function GET(
     JOIN teams ht  ON ht.id  = m.home_team_id
     JOIN teams at_ ON at_.id = m.away_team_id
     JOIN rounds r  ON r.id   = m.round_id
-    LEFT JOIN groups g ON g.id = ht.group_id
-    WHERE m.id = $1
-  `, [id])
+    LEFT JOIN \`groups\` g ON g.id = ht.group_id
+    WHERE m.id = ?
+  `, [id]) as [import("mysql2").RowDataPacket[], unknown]
 
   if (!matchRows[0]) {
     return NextResponse.json({ error: 'Mecz nie istnieje.' }, { status: 404 })
@@ -31,8 +31,7 @@ export async function GET(
   const match = matchRows[0]
   const revealed = match.status !== 'upcoming'
 
-  // Pobierz prognozy – ukryj cudze jeśli mecz nie rozpoczęty
-  const { rows: predictions } = await pool.query(`
+  const [predictions] = await pool.execute(`
     SELECT
       u.id AS user_id,
       u.display_name,
@@ -40,12 +39,12 @@ export async function GET(
       p.away_score,
       p.points_earned
     FROM users u
-    LEFT JOIN predictions p ON p.user_id = u.id AND p.match_id = $1
+    LEFT JOIN predictions p ON p.user_id = u.id AND p.match_id = ?
     ORDER BY
-      p.points_earned DESC NULLS LAST,
+      p.points_earned DESC,
       (p.id IS NOT NULL) DESC,
       u.display_name
-  `, [id])
+  `, [id]) as [import('mysql2').RowDataPacket[], unknown]
 
   const result = predictions.map(p => ({
     user_id:       p.user_id,

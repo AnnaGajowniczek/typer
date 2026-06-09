@@ -1,80 +1,66 @@
--- Użytkownicy
+-- schema.sql dla MySQL 8+
+
 CREATE TABLE users (
-    id            SERIAL PRIMARY KEY,
+    id            INT AUTO_INCREMENT PRIMARY KEY,
     email         VARCHAR(255) UNIQUE NOT NULL,
     display_name  VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255),
-    points_total  INTEGER NOT NULL DEFAULT 0,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    points_total  INT NOT NULL DEFAULT 0,
+    is_admin      BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at    DATETIME NOT NULL DEFAULT NOW()
 );
 
--- Grupy (A-L, MŚ 2026 ma 12 grup)
-CREATE TABLE groups (
-    id   SERIAL PRIMARY KEY,
-    name CHAR(1) UNIQUE NOT NULL   -- 'A', 'B', ... 'L'
+CREATE TABLE `groups` (
+    id   INT AUTO_INCREMENT PRIMARY KEY,
+    name CHAR(1) UNIQUE NOT NULL
 );
 
--- Drużyny
 CREATE TABLE teams (
-    id       SERIAL PRIMARY KEY,
+    id       INT AUTO_INCREMENT PRIMARY KEY,
     name     VARCHAR(100) UNIQUE NOT NULL,
-    group_id INTEGER REFERENCES groups(id),
-    logo_url VARCHAR(255)
+    group_id INT,
+    logo_url VARCHAR(255),
+    FOREIGN KEY (group_id) REFERENCES `groups`(id)
 );
 
--- Rundy
 CREATE TABLE rounds (
-    id       SERIAL PRIMARY KEY,
+    id       INT AUTO_INCREMENT PRIMARY KEY,
     name     VARCHAR(50) UNIQUE NOT NULL,
-    stage    VARCHAR(20) NOT NULL
-             CHECK (stage IN ('group', 'knockout')),
-    order_nr SMALLINT NOT NULL
+    stage    VARCHAR(20) NOT NULL,
+    order_nr SMALLINT NOT NULL,
+    CHECK (stage IN ('group', 'knockout'))
 );
 
--- Mecze
 CREATE TABLE matches (
-    id           SERIAL PRIMARY KEY,
-    round_id     INTEGER NOT NULL REFERENCES rounds(id),
-    home_team_id INTEGER REFERENCES teams(id),
-    away_team_id INTEGER REFERENCES teams(id),
-    starts_at    TIMESTAMPTZ NOT NULL,
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    round_id     INT NOT NULL,
+    home_team_id INT,
+    away_team_id INT,
+    starts_at    DATETIME NOT NULL,
     home_score   SMALLINT,
     away_score   SMALLINT,
-    status       VARCHAR(20) NOT NULL DEFAULT 'upcoming'
-                 CHECK (status IN ('upcoming', 'live', 'finished', 'cancelled'))
+    status       VARCHAR(20) NOT NULL DEFAULT 'upcoming',
+    FOREIGN KEY (round_id) REFERENCES rounds(id),
+    FOREIGN KEY (home_team_id) REFERENCES teams(id),
+    FOREIGN KEY (away_team_id) REFERENCES teams(id),
+    CHECK (status IN ('upcoming', 'live', 'finished', 'cancelled'))
 );
 
--- Typy
 CREATE TABLE predictions (
-    id            SERIAL PRIMARY KEY,
-    user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    match_id      INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    user_id       INT NOT NULL,
+    match_id      INT NOT NULL,
     home_score    SMALLINT NOT NULL,
     away_score    SMALLINT NOT NULL,
     points_earned SMALLINT,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (user_id, match_id)
+    created_at    DATETIME NOT NULL DEFAULT NOW(),
+    UNIQUE KEY unique_prediction (user_id, match_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE
 );
 
--- Indeksy
-CREATE INDEX ON matches(round_id);
-CREATE INDEX ON matches(starts_at);
-CREATE INDEX ON matches(status);
-CREATE INDEX ON predictions(user_id);
-CREATE INDEX ON predictions(match_id);
-
--- Dane początkowe: rundy
-INSERT INTO rounds (name, stage, order_nr) VALUES
-  ('Faza grupowa - kolejka 1', 'group',   1),
-  ('Faza grupowa - kolejka 2', 'group',   2),
-  ('Faza grupowa - kolejka 3', 'group',   3),
-  ('1/32 finalu',              'knockout', 4),
-  ('1/16 finalu',              'knockout', 5),
-  ('Cwiercfinaly',             'knockout', 6),
-  ('Polfinaly',                'knockout', 7),
-  ('Final',                    'knockout', 8);
-
--- Dane początkowe: grupy
-INSERT INTO groups (name) VALUES
-  ('A'), ('B'), ('C'), ('D'), ('E'), ('F'),
-  ('G'), ('H'), ('I'), ('J'), ('K'), ('L');
+CREATE INDEX idx_matches_round_id ON matches(round_id);
+CREATE INDEX idx_matches_starts_at ON matches(starts_at);
+CREATE INDEX idx_matches_status ON matches(status);
+CREATE INDEX idx_predictions_user_id ON predictions(user_id);
+CREATE INDEX idx_predictions_match_id ON predictions(match_id);
