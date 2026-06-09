@@ -50,8 +50,18 @@ export default function AdminPage() {
   const [saved, setSaved] = useState<number | null>(null)
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
 
+  useEffect(() => {
+    try {
+      setCollapsed(JSON.parse(localStorage.getItem('admin_collapsed_rounds') ?? '{}'))
+    } catch { /* ignore */ }
+  }, [])
+
   function toggleRound(roundId: number) {
-    setCollapsed(prev => ({ ...prev, [roundId]: !prev[roundId] }))
+    setCollapsed(prev => {
+      const next = { ...prev, [roundId]: !prev[roundId] }
+      localStorage.setItem('admin_collapsed_rounds', JSON.stringify(next))
+      return next
+    })
   }
 
   useEffect(() => {
