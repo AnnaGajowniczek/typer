@@ -69,24 +69,12 @@ export default function RulesModal() {
               <h3 className="text-sm font-semibold text-[#434351] mb-2 uppercase tracking-wide">
                 Zasady
               </h3>
-              <ul className="space-y-2 text-sm text-[#434351]/70">
-                <li className="flex gap-2">
-                  <span className="text-[#2e3192] shrink-0">🔒</span>
-                  Typy można składać <strong className="text-[#434351]">wyłącznie przed rozpoczęciem meczu</strong>. Po gwizdku sędziego edycja jest zablokowana.
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[#2e3192] shrink-0">👁</span>
-                  Typy innych graczy są <strong className="text-[#434351]">ukryte do momentu startu meczu</strong>, żeby nikt nie kopiował.
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[#2e3192] shrink-0">💾</span>
-                  Typy <strong className="text-[#434351]">zapisują się automatycznie</strong> po wpisaniu wyniku.
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[#2e3192] shrink-0">🏆</span>
-                  Ranking aktualizuje się na bieżąco po wpisaniu wyników meczów.
-                </li>
-              </ul>
+              <ol className="list-decimal list-inside space-y-2 text-sm text-[#434351]/70">
+                <li>Typy można składać wyłącznie przed rozpoczęciem meczu. Po gwizdku sędziego edycja jest zablokowana.</li>
+                <li>Typy innych graczy są ukryte do momentu startu meczu, żeby nikt nie kopiował.</li>
+                <li>Typy zapisują się automatycznie po wpisaniu wyniku.</li>
+                <li>Ranking aktualizuje się na bieżąco po wpisaniu wyników meczów.</li>
+              </ol>
             </div>
 
             <button
