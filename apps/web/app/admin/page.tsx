@@ -97,6 +97,13 @@ export default function AdminPage() {
       || e.home_team_id !== o.home_team_id || e.away_team_id !== o.away_team_id
   }
 
+  function hasScoreChanged(matchId: number): boolean {
+    const e = edits[matchId]
+    const o = original[matchId]
+    if (!e || !o) return false
+    return e.home !== o.home || e.away !== o.away
+  }
+
   function update(matchId: number, field: keyof MatchEdit, value: string | number | null) {
     setEdits(prev => ({
       ...prev,
@@ -279,7 +286,7 @@ export default function AdminPage() {
                     {/* Przycisk */}
                     <button
                       onClick={() => saveMatch(match.id)}
-                      disabled={isSaving || !hasResult || !changed}
+                      disabled={isSaving || !changed || (hasScoreChanged(match.id) && !hasResult)}
                       className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition shrink-0 ${
                         isSaved
                           ? 'bg-[#2e3192] text-white'
