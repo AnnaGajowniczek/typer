@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
+import RulesModal from '@/components/RulesModal'
 
 export default function Header() {
   const { data: session } = useSession()
