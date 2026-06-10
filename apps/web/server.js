@@ -10,8 +10,8 @@ if (setup.status !== 0) process.exit(setup.status)
 
 // Uruchom Next.js
 const next = spawn(
-  `node_modules/.bin/next start -p ${process.env.PORT || '3000'}`,
-  [],
+  'next',
+  ['start', '-p', process.env.PORT || '3000'],
   { stdio: 'inherit', env: process.env, shell: true }
 )
 next.on('exit', code => process.exit(code || 0))
