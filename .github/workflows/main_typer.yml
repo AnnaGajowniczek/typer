@@ -36,11 +36,19 @@ jobs:
       - name: Copy DB scripts for deployment
         run: cp -r db apps/web/db
 
+      - name: Prepare standalone output
+        working-directory: apps/web
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+          cp server.js .next/standalone/server.js
+          cp -r scripts .next/standalone/scripts
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: apps/web
+          path: apps/web/.next/standalone
           include-hidden-files: true
 
   deploy:
