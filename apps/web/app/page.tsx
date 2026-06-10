@@ -38,8 +38,14 @@ function timeUntil(iso: string) {
 }
 
 export default function HomePage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [upcoming, setUpcoming] = useState<Match[]>([])
+
+  useEffect(() => {
+    if (status === 'unauthenticated') window.location.href = '/logowanie'
+  }, [status])
+
+  if (status === 'loading' || status === 'unauthenticated') return null
 
   useEffect(() => {
     fetch('/api/matches')
