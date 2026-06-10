@@ -25,7 +25,8 @@ export default function RegisterPage() {
   useEffect(() => {
     fetch('/api/registration-status')
       .then(r => r.json())
-      .then(d => setRegistrationOpen(d.registration_open))
+      .then(d => setRegistrationOpen(d.registration_open ?? true))
+      .catch(() => setRegistrationOpen(true))
   }, [])
 
   const passwordMismatch = form.confirm.length > 0 && form.password !== form.confirm
