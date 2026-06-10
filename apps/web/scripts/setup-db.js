@@ -40,6 +40,11 @@ async function setup() {
       }
     }
 
+    // Uprawnienia admina
+    await conn.query(
+      "UPDATE users SET is_admin = TRUE WHERE email IN ('anna@itss.pl', 'annaX@itss.pl')"
+    )
+
     const [[{ count }]] = await conn.query('SELECT COUNT(*) as count FROM rounds')
     if (Number(count) === 0) {
       console.log('[setup-db] Seeding data...')
