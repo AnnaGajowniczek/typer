@@ -129,18 +129,12 @@ export default function HomePage() {
         )}
 
         {/* CTA */}
-        <div className="flex gap-3 justify-center pt-2">
+        <div className="flex justify-center pt-2">
           <a
             href="/typowanie"
             className="bg-[#2e3192] hover:bg-blue-900 text-white font-semibold px-6 py-3 rounded-xl transition"
           >
             Typuj teraz
-          </a>
-          <a
-            href="/ranking"
-            className="bg-[#2e3192]/10 hover:bg-[#2e3192]/20 text-[#2e3192] font-semibold px-6 py-3 rounded-xl transition"
-          >
-            Ranking
           </a>
         </div>
 
