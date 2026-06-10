@@ -77,7 +77,6 @@ export default function HomePage() {
           {session?.user ? (
             <>
               <p className="text-3xl font-bold text-[#2e3192]">Cześć, {firstName}! 👋</p>
-              <p className="text-[#434351]/60 mt-2">Gotowy na typowanie MŚ 2026?</p>
             </>
           ) : (
             <>
