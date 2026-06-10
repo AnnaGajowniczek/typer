@@ -27,6 +27,7 @@ type Round = {
 }
 
 type Team = { id: number; name: string; group_name: string | null }
+type User = { id: number; email: string; display_name: string; is_admin: boolean; points_total: number }
 type MatchEdit = { home: string; away: string; status: string; home_team_id: number | null; away_team_id: number | null }
 type EditMap = Record<number, MatchEdit>
 
@@ -44,11 +45,14 @@ export default function AdminPage() {
   const router = useRouter()
   const [rounds, setRounds] = useState<Round[]>([])
   const [teams, setTeams] = useState<Team[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [edits, setEdits] = useState<EditMap>({})
   const [original, setOriginal] = useState<EditMap>({})
   const [saving, setSaving] = useState<number | null>(null)
   const [saved, setSaved] = useState<number | null>(null)
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
+  const [resetForm, setResetForm] = useState<Record<number, string>>({})
+  const [resetMsg, setResetMsg] = useState<Record<number, string>>({})
 
   useEffect(() => {
     try {
@@ -70,6 +74,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetch('/api/teams').then(r => r.json()).then(setTeams)
+    fetch('/api/admin/users').then(r => r.json()).then(setUsers)
     fetch('/api/matches').then(r => r.json()).then((rounds: Round[]) => {
       setRounds(rounds)
       const initial: EditMap = {}
@@ -151,6 +156,20 @@ export default function AdminPage() {
     setTimeout(() => setSaved(null), 2000)
   }
 
+  async function resetPassword(userId: number) {
+    const password = resetForm[userId]
+    if (!password || password.length < 6) return
+    const res = await fetch('/api/admin/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, password }),
+    })
+    const data = await res.json()
+    setResetMsg(prev => ({ ...prev, [userId]: res.ok ? '✓ Zmieniono' : data.error }))
+    if (res.ok) setResetForm(prev => ({ ...prev, [userId]: '' }))
+    setTimeout(() => setResetMsg(prev => ({ ...prev, [userId]: '' })), 3000)
+  }
+
   if (status === 'loading' || rounds.length === 0) {
     return (
       <main className="min-h-screen bg-[#eff1f9] text-[#434351] flex items-center justify-center">
@@ -164,6 +183,46 @@ export default function AdminPage() {
       <Header />
 
       <div className="max-w-4xl mx-auto px-4 pt-6 space-y-8">
+
+        {/* Użytkownicy */}
+        <section>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#2e3192]">Użytkownicy</div>
+            <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
+          </div>
+          <div className="space-y-2">
+            {users.map(u => (
+              <div key={u.id} className="rounded-xl px-4 py-3 bg-[#2e3192]/[0.03] border border-[#2e3192]/10 flex items-center gap-3 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium">{u.display_name}</span>
+                  <span className="text-xs text-[#434351]/50 ml-2">{u.email}</span>
+                  {u.is_admin && <span className="text-xs bg-[#2e3192]/15 text-[#2e3192] px-1.5 py-0.5 rounded ml-2">admin</span>}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <input
+                    type="password"
+                    value={resetForm[u.id] ?? ''}
+                    onChange={e => setResetForm(prev => ({ ...prev, [u.id]: e.target.value }))}
+                    placeholder="Nowe hasło"
+                    className="text-xs bg-white border border-[#2e3192]/20 rounded-lg px-3 py-1.5 w-36 focus:outline-none focus:border-[#2e3192]"
+                  />
+                  <button
+                    onClick={() => resetPassword(u.id)}
+                    disabled={!resetForm[u.id] || (resetForm[u.id]?.length ?? 0) < 6}
+                    className="text-xs bg-[#2e3192] hover:bg-blue-900 disabled:opacity-30 text-white px-3 py-1.5 rounded-lg transition"
+                  >
+                    Resetuj
+                  </button>
+                  {resetMsg[u.id] && (
+                    <span className={`text-xs ${resetMsg[u.id].startsWith('✓') ? 'text-[#2e3192]' : 'text-red-500'}`}>
+                      {resetMsg[u.id]}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
         {rounds.map(round => {
           const isCollapsed = !!collapsed[round.id]
           return (
