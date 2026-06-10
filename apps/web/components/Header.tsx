@@ -26,12 +26,11 @@ export default function Header() {
   return (
     <div className="bg-white/90 sticky top-0 z-10 border-b border-[#2e3192]/10 backdrop-blur">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-        <a href="/typowanie">
+        <a href="/">
           <img src={LOGO_SRC} alt="ITSS" className="h-8" />
         </a>
 
         <div className="flex items-center gap-4 ml-6">
-          {navLink('/', 'Start')}
           {navLink('/typowanie', 'Typowanie')}
           {navLink('/ranking', 'Ranking')}
           {navLink('/mecze-lista', 'Mecze')}
