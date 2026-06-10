@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ email: '', display_name: '', password: '', confirm: '' })
+  const [form, setForm] = useState({ email: '', first_name: '', last_name: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -70,16 +70,29 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm text-[#2e3192] font-medium">Nazwa gracza</label>
-            <input
-              type="text"
-              required
-              value={form.display_name}
-              onChange={e => setForm({ ...form, display_name: e.target.value })}
-              placeholder="JanKowalski"
-              className="w-full bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg px-4 py-2.5 text-[#434351] placeholder-[#434351]/40 focus:outline-none focus:border-[#2e3192] transition"
-            />
+          <div className="flex gap-3">
+            <div className="space-y-1 flex-1">
+              <label className="text-sm text-[#2e3192] font-medium">Imię</label>
+              <input
+                type="text"
+                required
+                value={form.first_name}
+                onChange={e => setForm({ ...form, first_name: e.target.value })}
+                placeholder="Jan"
+                className="w-full bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg px-4 py-2.5 text-[#434351] placeholder-[#434351]/40 focus:outline-none focus:border-[#2e3192] transition"
+              />
+            </div>
+            <div className="space-y-1 flex-1">
+              <label className="text-sm text-[#2e3192] font-medium">Nazwisko</label>
+              <input
+                type="text"
+                required
+                value={form.last_name}
+                onChange={e => setForm({ ...form, last_name: e.target.value })}
+                placeholder="Kowalski"
+                className="w-full bg-[#2e3192]/[0.06] border border-[#2e3192]/20 rounded-lg px-4 py-2.5 text-[#434351] placeholder-[#434351]/40 focus:outline-none focus:border-[#2e3192] transition"
+              />
+            </div>
           </div>
 
           <div className="space-y-1">

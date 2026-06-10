@@ -4,9 +4,10 @@ import pool from '@/lib/db'
 import type { RowDataPacket } from 'mysql2'
 
 export async function POST(req: NextRequest) {
-  const { email, display_name, password } = await req.json()
+  const { email, first_name, last_name, password } = await req.json()
+  const display_name = `${(first_name ?? '').trim()} ${(last_name ?? '').trim()}`.trim()
 
-  if (!email || !display_name || !password) {
+  if (!email || !first_name || !last_name || !password) {
     return NextResponse.json({ error: 'Wszystkie pola są wymagane.' }, { status: 400 })
   }
 
