@@ -3,6 +3,7 @@
 import { useSession, signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import RulesModal from '@/components/RulesModal'
+import { LOGO_SRC } from '@/lib/logo'
 
 export default function Header() {
   const { data: session } = useSession()
@@ -26,7 +27,7 @@ export default function Header() {
     <div className="bg-white/90 sticky top-0 z-10 border-b border-[#2e3192]/10 backdrop-blur">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
         <a href="/typowanie">
-          <img src="/logo-itss.png" alt="ITSS" className="h-8" />
+          <img src={LOGO_SRC} alt="ITSS" className="h-8" />
         </a>
 
         <div className="flex items-center gap-4 ml-6">

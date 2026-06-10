@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { LOGO_SRC } from '@/lib/logo'
 import { Suspense } from 'react'
 
 function LoginForm() {
@@ -39,7 +40,7 @@ function LoginForm() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           
-          <img src="/logo-itss.png" alt="ITSS" className="h-12 mx-auto" />
+          <img src={LOGO_SRC} alt="ITSS" className="h-12 mx-auto" />
           <p className="text-[#2e3192] mt-1">Typuj wyniki meczów</p>
         </div>
 
