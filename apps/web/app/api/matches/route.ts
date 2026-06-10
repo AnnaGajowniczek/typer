@@ -3,6 +3,11 @@ import pool from '@/lib/db'
 import type { RowDataPacket } from 'mysql2'
 
 export async function GET() {
+  await pool.execute(
+    `UPDATE matches SET status = 'live'
+     WHERE status = 'upcoming' AND starts_at <= NOW()`
+  )
+
   const [rows] = await pool.execute(`
     SELECT
       m.id,
