@@ -133,7 +133,7 @@ export default function HomePage() {
             href="/typowanie"
             className="bg-[#2e3192] hover:bg-blue-900 text-white font-semibold px-6 py-3 rounded-xl transition"
           >
-            Typuj teraz
+            Rozpocznij typowanie!
           </a>
         </div>
 
