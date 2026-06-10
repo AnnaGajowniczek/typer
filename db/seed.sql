@@ -24,7 +24,7 @@ INSERT INTO `groups` (name) VALUES
 INSERT INTO teams (name, group_id) SELECT 'Meksyk',                   id FROM `groups` WHERE name = 'A';
 INSERT INTO teams (name, group_id) SELECT 'Korea Południowa',          id FROM `groups` WHERE name = 'A';
 INSERT INTO teams (name, group_id) SELECT 'Czechy',                    id FROM `groups` WHERE name = 'A';
-INSERT INTO teams (name, group_id) SELECT 'Republika Południowej Afryki', id FROM `groups` WHERE name = 'A';
+INSERT INTO teams (name, group_id) SELECT 'RPA', id FROM `groups` WHERE name = 'A';
 INSERT INTO teams (name, group_id) SELECT 'Kanada',                    id FROM `groups` WHERE name = 'B';
 INSERT INTO teams (name, group_id) SELECT 'Bośnia i Hercegowina',      id FROM `groups` WHERE name = 'B';
 INSERT INTO teams (name, group_id) SELECT 'Katar',                     id FROM `groups` WHERE name = 'B';
@@ -74,7 +74,7 @@ INSERT INTO teams (name, group_id) SELECT 'Panama',                    id FROM `
 INSERT INTO matches (round_id, home_team_id, away_team_id, starts_at)
 SELECT r.id, ht.id, at_.id, m.starts_at
 FROM (
-  SELECT 1 AS rnd, 'Meksyk' AS home, 'Republika Południowej Afryki' AS away, '2026-06-11 19:00:00' AS starts_at UNION ALL
+  SELECT 1 AS rnd, 'Meksyk' AS home, 'RPA' AS away, '2026-06-11 19:00:00' AS starts_at UNION ALL
   SELECT 1, 'Korea Południowa', 'Czechy', '2026-06-12 02:00:00' UNION ALL
   SELECT 1, 'Kanada', 'Bośnia i Hercegowina', '2026-06-12 19:00:00' UNION ALL
   SELECT 1, 'Stany Zjednoczone', 'Paragwaj', '2026-06-13 01:00:00' UNION ALL
@@ -98,7 +98,7 @@ FROM (
   SELECT 1, 'Anglia', 'Chorwacja', '2026-06-17 20:00:00' UNION ALL
   SELECT 1, 'Ghana', 'Panama', '2026-06-17 23:00:00' UNION ALL
   SELECT 1, 'Uzbekistan', 'Kolumbia', '2026-06-18 02:00:00' UNION ALL
-  SELECT 2, 'Czechy', 'Republika Południowej Afryki', '2026-06-18 16:00:00' UNION ALL
+  SELECT 2, 'Czechy', 'RPA', '2026-06-18 16:00:00' UNION ALL
   SELECT 2, 'Szwajcaria', 'Bośnia i Hercegowina', '2026-06-18 19:00:00' UNION ALL
   SELECT 2, 'Kanada', 'Katar', '2026-06-18 22:00:00' UNION ALL
   SELECT 2, 'Meksyk', 'Korea Południowa', '2026-06-19 03:00:00' UNION ALL
@@ -127,7 +127,7 @@ FROM (
   SELECT 3, 'Szkocja', 'Brazylia', '2026-06-24 22:00:00' UNION ALL
   SELECT 3, 'Maroko', 'Haiti', '2026-06-24 22:00:00' UNION ALL
   SELECT 3, 'Czechy', 'Meksyk', '2026-06-25 01:00:00' UNION ALL
-  SELECT 3, 'Republika Południowej Afryki', 'Korea Południowa', '2026-06-25 01:00:00' UNION ALL
+  SELECT 3, 'RPA', 'Korea Południowa', '2026-06-25 01:00:00' UNION ALL
   SELECT 3, 'Ekwador', 'Niemcy', '2026-06-25 20:00:00' UNION ALL
   SELECT 3, 'Curaçao', 'Wybrzeże Kości Słoniowej', '2026-06-25 20:00:00' UNION ALL
   SELECT 3, 'Japonia', 'Szwecja', '2026-06-25 23:00:00' UNION ALL

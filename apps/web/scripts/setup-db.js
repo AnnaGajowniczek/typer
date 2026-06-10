@@ -40,6 +40,9 @@ async function setup() {
       }
     }
 
+    // Korekty nazw druzyn
+    await conn.query("UPDATE teams SET name = 'RPA' WHERE name = 'Republika Południowej Afryki'")
+
     // Uprawnienia admina
     await conn.query(
       "UPDATE users SET is_admin = TRUE WHERE email IN ('anna@itss.pl', 'annaX@itss.pl')"

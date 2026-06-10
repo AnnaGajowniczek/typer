@@ -2,7 +2,7 @@ const FLAGS: Record<string, string> = {
   'Meksyk':                        '🇲🇽',
   'Korea Południowa':               '🇰🇷',
   'Czechy':                         '🇨🇿',
-  'Republika Południowej Afryki':   '🇿🇦',
+  'RPA':                            '🇿🇦',
   'Kanada':                         '🇨🇦',
   'Bośnia i Hercegowina':           '🇧🇦',
   'Katar':                          '🇶🇦',
