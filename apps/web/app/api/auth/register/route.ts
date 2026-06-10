@@ -4,7 +4,20 @@ import pool from '@/lib/db'
 import type { RowDataPacket } from 'mysql2'
 
 export async function POST(req: NextRequest) {
-  const { email, first_name, last_name, password } = await req.json()
+  const { email, first_name, last_name, password, turnstileToken } = await req.json()
+
+  const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      secret: '0x4AAAAAADiFbAteN25o_H3CyC0wsWPJDa4',
+      response: turnstileToken,
+    }),
+  })
+  const verify = await verifyRes.json()
+  if (!verify.success) {
+    return NextResponse.json({ error: 'Weryfikacja CAPTCHA nie powiodła się.' }, { status: 400 })
+  }
   const display_name = `${(first_name ?? '').trim()} ${(last_name ?? '').trim()}`.trim()
 
   if (!email || !first_name || !last_name || !password) {

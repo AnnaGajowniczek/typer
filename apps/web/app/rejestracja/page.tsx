@@ -1,21 +1,54 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LOGO_SRC } from '@/lib/logo'
+
+declare global {
+  interface Window {
+    turnstile: {
+      render: (el: HTMLElement, options: object) => void
+      reset: (widgetId: string) => void
+    }
+  }
+}
 
 export default function RegisterPage() {
   const router = useRouter()
   const [form, setForm] = useState({ email: '', first_name: '', last_name: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<HTMLDivElement>(null)
 
   const passwordMismatch = form.confirm.length > 0 && form.password !== form.confirm
+
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+    script.async = true
+    script.onload = () => {
+      if (turnstileRef.current) {
+        window.turnstile.render(turnstileRef.current, {
+          sitekey: '0x4AAAAAADiFbOd2aYqZUOOM',
+          callback: (token: string) => setTurnstileToken(token),
+          'expired-callback': () => setTurnstileToken(''),
+          'error-callback': () => setTurnstileToken(''),
+        })
+      }
+    }
+    document.head.appendChild(script)
+    return () => { document.head.removeChild(script) }
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (form.password !== form.confirm) {
       setError('Hasła nie są identyczne.')
+      return
+    }
+    if (!turnstileToken) {
+      setError('Potwierdź że nie jesteś robotem.')
       return
     }
     setError('')
@@ -24,7 +57,7 @@ export default function RegisterPage() {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, turnstileToken }),
     })
 
     const data = await res.json()
@@ -32,6 +65,7 @@ export default function RegisterPage() {
 
     if (!res.ok) {
       setError(data.error)
+      setTurnstileToken('')
       return
     }
 
@@ -42,7 +76,6 @@ export default function RegisterPage() {
     <main className="min-h-screen bg-[#eff1f9] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          
           <img src={LOGO_SRC} alt="ITSS" className="h-12 mx-auto" />
           <p className="text-[#2e3192] mt-1">Typuj wyniki meczów</p>
         </div>
@@ -128,9 +161,11 @@ export default function RegisterPage() {
             )}
           </div>
 
+          <div ref={turnstileRef} />
+
           <button
             type="submit"
-            disabled={loading || passwordMismatch}
+            disabled={loading || passwordMismatch || !turnstileToken}
             className="w-full bg-[#2e3192] hover:bg-blue-900 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition"
           >
             {loading ? 'Rejestrowanie...' : 'Zarejestruj się'}
