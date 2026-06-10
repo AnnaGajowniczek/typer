@@ -51,12 +51,14 @@ export default function AdminPage() {
   const [saving, setSaving] = useState<number | null>(null)
   const [saved, setSaved] = useState<number | null>(null)
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
+  const [usersCollapsed, setUsersCollapsed] = useState(false)
   const [resetForm, setResetForm] = useState<Record<number, string>>({})
   const [resetMsg, setResetMsg] = useState<Record<number, string>>({})
 
   useEffect(() => {
     try {
       setCollapsed(JSON.parse(localStorage.getItem('admin_collapsed_rounds') ?? '{}'))
+      setUsersCollapsed(localStorage.getItem('admin_collapsed_users') === 'true')
     } catch { /* ignore */ }
   }, [])
 
@@ -186,11 +188,19 @@ export default function AdminPage() {
 
         {/* Użytkownicy */}
         <section>
-          <div className="flex items-center gap-3 mb-3">
+          <button
+            onClick={() => {
+              const next = !usersCollapsed
+              setUsersCollapsed(next)
+              localStorage.setItem('admin_collapsed_users', String(next))
+            }}
+            className="flex items-center gap-3 mb-3 w-full text-left group"
+          >
             <div className="text-xs font-bold uppercase tracking-widest text-[#2e3192]">Użytkownicy</div>
             <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
-          </div>
-          <div className="space-y-2">
+            <span className={`text-[#2e3192]/50 text-xs transition-transform duration-200 ${usersCollapsed ? '' : 'rotate-180'}`}>▲</span>
+          </button>
+          {!usersCollapsed && <div className="space-y-2">
             {users.map(u => (
               <div key={u.id} className="rounded-xl px-4 py-3 bg-[#2e3192]/[0.03] border border-[#2e3192]/10 flex items-center gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
@@ -221,7 +231,7 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
         </section>
         {rounds.map(round => {
           const isCollapsed = !!collapsed[round.id]
