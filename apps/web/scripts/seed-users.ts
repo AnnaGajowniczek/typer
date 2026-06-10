@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import mysql from 'mysql2/promise'
 
-const pool = mysql.createPool('mysql://root:HASLO@localhost:3306/typowanie')
+const pool = mysql.createPool('mysql://root:HASLO@localhost:3306/typer')
 
 const users = [
   { email: 'shrek@bagna.pl',            display_name: 'Shrek' },

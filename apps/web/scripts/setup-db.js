@@ -8,10 +8,22 @@ async function setup() {
     return
   }
 
-  console.log('[setup-db] Connecting...')
-  const conn = await mysql.createConnection(process.env.DATABASE_URL)
+  // Parsuj URL żeby połączyć się bez nazwy bazy (na wypadek gdy nie istnieje)
+  const url = new URL(process.env.DATABASE_URL)
+  const dbName = url.pathname.replace('/', '')
+
+  const conn = await mysql.createConnection({
+    host: url.hostname,
+    port: Number(url.port) || 3306,
+    user: url.username,
+    password: url.password,
+  })
 
   try {
+    console.log(`[setup-db] Creating database '${dbName}' if not exists...`)
+    await conn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`)
+    await conn.query(`USE \`${dbName}\``)
+
     const schema = fs.readFileSync(path.join(__dirname, '../db/schema.sql'), 'utf8')
     const statements = schema
       .split(';')
