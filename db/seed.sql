@@ -1,5 +1,9 @@
 -- seed.sql dla MySQL 8+ — MŚ 2026
 
+-- Admin
+INSERT INTO users (email, display_name, password_hash, is_admin) VALUES
+  ('anna@itss.pl', 'Anna', '$2b$10$EYyalpAsElArJdT8KYBo4.K7Qt4BppIsMH3bp7L8k3sr0EMbK9xd6', TRUE);
+
 -- Rundy
 INSERT INTO rounds (name, stage, order_nr) VALUES
   ('Faza grupowa - kolejka 1', 'group',    1),
