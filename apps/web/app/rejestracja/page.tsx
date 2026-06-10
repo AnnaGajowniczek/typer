@@ -79,7 +79,7 @@ export default function RegisterPage() {
     router.push('/?registered=1')
   }
 
-  if (registrationOpen === false) {
+  if (registrationOpen !== true) {
     return (
       <main className="min-h-screen bg-[#eff1f9] flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
@@ -189,8 +189,8 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={loading || passwordMismatch || !turnstileToken}
-            className="w-full bg-[#2e3192] hover:bg-blue-900 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition"
+            disabled={loading || passwordMismatch || !turnstileToken || registrationOpen !== true}
+            className={`w-full bg-[#2e3192] hover:bg-blue-900 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition ${registrationOpen !== true ? 'hidden' : ''}`}
           >
             {loading ? 'Rejestrowanie...' : 'Zarejestruj się'}
           </button>
