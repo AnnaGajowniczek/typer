@@ -1,6 +1,6 @@
 -- schema.sql dla MySQL 8+
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id            INT AUTO_INCREMENT PRIMARY KEY,
     email         VARCHAR(255) UNIQUE NOT NULL,
     display_name  VARCHAR(100) NOT NULL,
@@ -10,12 +10,12 @@ CREATE TABLE users (
     created_at    DATETIME NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE `groups` (
+CREATE TABLE IF NOT EXISTS `groups` (
     id   INT AUTO_INCREMENT PRIMARY KEY,
     name CHAR(1) UNIQUE NOT NULL
 );
 
-CREATE TABLE teams (
+CREATE TABLE IF NOT EXISTS teams (
     id       INT AUTO_INCREMENT PRIMARY KEY,
     name     VARCHAR(100) UNIQUE NOT NULL,
     group_id INT,
@@ -23,7 +23,7 @@ CREATE TABLE teams (
     FOREIGN KEY (group_id) REFERENCES `groups`(id)
 );
 
-CREATE TABLE rounds (
+CREATE TABLE IF NOT EXISTS rounds (
     id       INT AUTO_INCREMENT PRIMARY KEY,
     name     VARCHAR(50) UNIQUE NOT NULL,
     stage    VARCHAR(20) NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE rounds (
     CHECK (stage IN ('group', 'knockout'))
 );
 
-CREATE TABLE matches (
+CREATE TABLE IF NOT EXISTS matches (
     id           INT AUTO_INCREMENT PRIMARY KEY,
     round_id     INT NOT NULL,
     home_team_id INT,
@@ -46,7 +46,7 @@ CREATE TABLE matches (
     CHECK (status IN ('upcoming', 'live', 'finished', 'cancelled'))
 );
 
-CREATE TABLE predictions (
+CREATE TABLE IF NOT EXISTS predictions (
     id            INT AUTO_INCREMENT PRIMARY KEY,
     user_id       INT NOT NULL,
     match_id      INT NOT NULL,
