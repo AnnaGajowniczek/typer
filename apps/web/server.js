@@ -8,10 +8,10 @@ const setup = spawnSync('node', ['scripts/setup-db.js'], {
 })
 if (setup.status !== 0) process.exit(setup.status)
 
-// Uruchom Next.js
-const next = spawn(
-  'next',
-  ['start', '-p', process.env.PORT || '3000'],
-  { stdio: 'inherit', env: process.env, shell: true }
-)
+// Uruchom Next.js - znajdź binarke przez Node module resolution
+const nextBin = require.resolve('next/dist/bin/next')
+const next = spawn(process.execPath, [nextBin, 'start', '-p', process.env.PORT || '3000'], {
+  stdio: 'inherit',
+  env: process.env,
+})
 next.on('exit', code => process.exit(code || 0))
