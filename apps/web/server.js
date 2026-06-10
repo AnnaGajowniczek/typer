@@ -7,6 +7,13 @@ const setup = spawnSync('node', ['scripts/setup-db.js'], {
 })
 if (setup.status !== 0) process.exit(setup.status)
 
-// Uruchom Next.js standalone server
-process.env.PORT = process.env.PORT || '3000'
-require('./.next/standalone/server.js')
+// Uruchom Next.js - przez node zeby uniknac problemow z PATH
+const nextBin = require.resolve('next/dist/bin/next')
+const port = process.env.PORT || '3000'
+const { spawn } = require('child_process')
+const next = spawn(process.execPath, [nextBin, 'start', '-p', port], {
+  stdio: 'inherit',
+  env: process.env,
+  cwd: __dirname,
+})
+next.on('exit', code => process.exit(code || 0))
