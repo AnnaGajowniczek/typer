@@ -1,3 +1,9 @@
+const fs = require('fs')
+const path = require('path')
+console.log('[server] CWD:', process.cwd())
+console.log('[server] __dirname:', __dirname)
+console.log('[server] public/ exists:', fs.existsSync(path.join(__dirname, 'public')))
+console.log('[server] logo exists:', fs.existsSync(path.join(__dirname, 'public', 'logo-itss.png')))
 const { spawnSync } = require('child_process')
 
 // Uruchom setup bazy (czeka na zakończenie)
