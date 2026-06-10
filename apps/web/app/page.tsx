@@ -45,9 +45,8 @@ export default function HomePage() {
     if (status === 'unauthenticated') window.location.href = '/logowanie'
   }, [status])
 
-  if (status === 'loading' || status === 'unauthenticated') return null
-
   useEffect(() => {
+    if (status !== 'authenticated') return
     fetch('/api/matches')
       .then(r => r.json())
       .then((rounds: { matches: Match[]; name: string }[]) => {
@@ -59,7 +58,9 @@ export default function HomePage() {
           .slice(0, 6)
         setUpcoming(matches)
       })
-  }, [])
+  }, [status])
+
+  if (status === 'loading' || status === 'unauthenticated') return null
 
   const firstName = session?.user?.name?.split(' ')[0]
 
