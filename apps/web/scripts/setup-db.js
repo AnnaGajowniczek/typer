@@ -32,7 +32,12 @@ async function setup() {
 
     console.log('[setup-db] Running schema...')
     for (const stmt of statements) {
-      await conn.query(stmt)
+      try {
+        await conn.query(stmt)
+      } catch (err) {
+        if (err.errno === 1061) continue // indeks już istnieje
+        throw err
+      }
     }
 
     const [[{ count }]] = await conn.query('SELECT COUNT(*) as count FROM rounds')

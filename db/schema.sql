@@ -59,8 +59,8 @@ CREATE TABLE IF NOT EXISTS predictions (
     FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_matches_round_id ON matches(round_id);
-CREATE INDEX IF NOT EXISTS idx_matches_starts_at ON matches(starts_at);
-CREATE INDEX IF NOT EXISTS idx_matches_status ON matches(status);
-CREATE INDEX IF NOT EXISTS idx_predictions_user_id ON predictions(user_id);
-CREATE INDEX IF NOT EXISTS idx_predictions_match_id ON predictions(match_id);
+CREATE INDEX idx_matches_round_id ON matches(round_id);
+CREATE INDEX idx_matches_starts_at ON matches(starts_at);
+CREATE INDEX idx_matches_status ON matches(status);
+CREATE INDEX idx_predictions_user_id ON predictions(user_id);
+CREATE INDEX idx_predictions_match_id ON predictions(match_id);
