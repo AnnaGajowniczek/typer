@@ -20,6 +20,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
   const turnstileRef = useRef<HTMLDivElement>(null)
+  const [registrationOpen, setRegistrationOpen] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    fetch('/api/registration-status')
+      .then(r => r.json())
+      .then(d => setRegistrationOpen(d.registration_open))
+  }, [])
 
   const passwordMismatch = form.confirm.length > 0 && form.password !== form.confirm
 
@@ -70,6 +77,23 @@ export default function RegisterPage() {
     }
 
     router.push('/?registered=1')
+  }
+
+  if (registrationOpen === false) {
+    return (
+      <main className="min-h-screen bg-[#eff1f9] flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center">
+          <img src={LOGO_SRC} alt="ITSS" className="h-12 mx-auto mb-8" />
+          <div className="bg-[#2e3192]/[0.06] backdrop-blur rounded-2xl p-8 space-y-4">
+            <p className="text-xl font-semibold text-[#434351]">Rejestracja zamknięta</p>
+            <p className="text-[#434351]/60 text-sm">Rejestracja nowych kont jest obecnie niedostępna.</p>
+            <a href="/logowanie" className="inline-block text-sm text-[#2e3192] hover:underline">
+              Przejdź do logowania
+            </a>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (

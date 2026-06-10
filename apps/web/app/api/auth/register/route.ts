@@ -4,6 +4,14 @@ import pool from '@/lib/db'
 import type { RowDataPacket } from 'mysql2'
 
 export async function POST(req: NextRequest) {
+  const [settingsRows] = await pool.execute(
+    'SELECT registration_open FROM app_settings WHERE id = 1'
+  ) as [import("mysql2").RowDataPacket[], unknown]
+  const registrationOpen = settingsRows.length === 0 ? true : Boolean(settingsRows[0].registration_open)
+  if (!registrationOpen) {
+    return NextResponse.json({ error: 'Rejestracja jest obecnie zamknięta.' }, { status: 403 })
+  }
+
   const { email, first_name, last_name, password, turnstileToken } = await req.json()
 
   const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {

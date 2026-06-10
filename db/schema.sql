@@ -59,6 +59,13 @@ CREATE TABLE IF NOT EXISTS predictions (
     FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS app_settings (
+    id                INT PRIMARY KEY DEFAULT 1,
+    registration_open BOOLEAN NOT NULL DEFAULT TRUE,
+    CHECK (id = 1)
+);
+INSERT IGNORE INTO app_settings (id, registration_open) VALUES (1, TRUE);
+
 CREATE INDEX idx_matches_round_id ON matches(round_id);
 CREATE INDEX idx_matches_starts_at ON matches(starts_at);
 CREATE INDEX idx_matches_status ON matches(status);

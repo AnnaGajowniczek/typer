@@ -54,6 +54,7 @@ export default function AdminPage() {
   const [usersCollapsed, setUsersCollapsed] = useState(false)
   const [resetForm, setResetForm] = useState<Record<number, string>>({})
   const [resetMsg, setResetMsg] = useState<Record<number, string>>({})
+  const [registrationOpen, setRegistrationOpen] = useState<boolean | null>(null)
 
   useEffect(() => {
     try {
@@ -75,6 +76,7 @@ export default function AdminPage() {
   }, [status, router])
 
   useEffect(() => {
+    fetch('/api/admin/settings').then(r => r.json()).then(d => setRegistrationOpen(d.registration_open))
     fetch('/api/teams').then(r => r.json()).then(setTeams)
     fetch('/api/admin/users').then(r => r.json()).then(setUsers)
     fetch('/api/matches').then(r => r.json()).then((rounds: Round[]) => {
@@ -158,6 +160,16 @@ export default function AdminPage() {
     setTimeout(() => setSaved(null), 2000)
   }
 
+  async function toggleRegistration() {
+    const next = !registrationOpen
+    setRegistrationOpen(next)
+    await fetch('/api/admin/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registration_open: next }),
+    })
+  }
+
   async function resetPassword(userId: number) {
     const password = resetForm[userId]
     if (!password || password.length < 6) return
@@ -185,6 +197,32 @@ export default function AdminPage() {
       <Header />
 
       <div className="max-w-4xl mx-auto px-4 pt-6 space-y-8">
+
+        {/* Rejestracja */}
+        <section>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#2e3192]">Rejestracja</div>
+            <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
+          </div>
+          <div className="rounded-xl px-4 py-3 bg-[#2e3192]/[0.03] border border-[#2e3192]/10 flex items-center gap-4">
+            <span className="text-sm flex-1">Możliwość rejestracji nowych kont</span>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <div
+                onClick={toggleRegistration}
+                className={`w-10 h-6 rounded-full transition-colors relative ${
+                  registrationOpen ? 'bg-[#2e3192]' : 'bg-[#2e3192]/20'
+                }`}
+              >
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                  registrationOpen ? 'left-5' : 'left-1'
+                }`} />
+              </div>
+              <span className="text-xs text-[#434351]/60">
+                {registrationOpen ? 'Otwarta' : 'Zamknięta'}
+              </span>
+            </label>
+          </div>
+        </section>
 
         {/* Użytkownicy */}
         <section>
