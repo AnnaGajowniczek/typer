@@ -65,6 +65,7 @@ export default function HomePage() {
   if (status === 'loading' || status === 'unauthenticated') return null
 
   const firstName = session?.user?.name?.split(' ')[0]
+  const isFemale = firstName ? firstName.toLowerCase().endsWith('a') : false
 
   return (
     <main className="min-h-screen bg-[#eff1f9] text-[#434351]">
@@ -77,6 +78,7 @@ export default function HomePage() {
           {session?.user ? (
             <>
               <p className="text-3xl font-bold text-[#2e3192]">Cześć, {firstName}! 👋</p>
+              <p className="text-[#434351]/60 mt-2">{isFemale ? 'Gotowa' : 'Gotowy'} na sportową przygodę?</p>
             </>
           ) : (
             <>
