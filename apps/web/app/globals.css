@@ -28,6 +28,7 @@ body {
 /* Białe powierzchnie */
 .dark .bg-white { background-color: #181929; }
 .dark .bg-white\/90 { background-color: rgb(14 15 26 / 0.95); }
+.dark .bg-white\/80 { background-color: rgb(129 140 248 / 0.13); }
 .dark .bg-white\/60 { background-color: rgb(24 25 41 / 0.75); }
 
 /* Tekst bazowy */
