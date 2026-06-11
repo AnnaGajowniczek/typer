@@ -1,0 +1,17 @@
+name: Sync match results
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # co 5 minut
+  workflow_dispatch:          # możliwość ręcznego uruchomienia
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch and update match results
+        run: |
+          curl -s -X GET https://typer.azurewebsites.net/api/admin/sync-results \
+            -H "x-sync-secret: ${{ secrets.SYNC_SECRET }}" \
+            -w "\nHTTP %{http_code}" \
+            --max-time 30
