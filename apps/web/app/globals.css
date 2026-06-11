@@ -78,6 +78,11 @@ body {
 .dark .bg-orange-100 { background-color: rgb(154 52 18 / 0.2); }
 .dark .text-orange-600 { color: #fb923c; }
 
+/* Logo ITSS */
+.dark img[alt="ITSS"] {
+  filter: brightness(0) invert(1);
+}
+
 /* Hover na kartach meczów */
 .dark .hover\:bg-\[\#2e3192\]\/\[0\.06\]:hover { background-color: rgb(129 140 248 / 0.14); }
 .dark .hover\:border-\[\#2e3192\]\/20:hover { border-color: rgb(129 140 248 / 0.3); }
