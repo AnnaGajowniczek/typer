@@ -32,10 +32,10 @@ function timeUntil(iso: string) {
   const days = Math.floor(diff / 86400000)
   const hours = Math.floor((diff % 86400000) / 3600000)
   const minutes = Math.floor((diff % 3600000) / 60000)
-  if (days > 0 && hours > 0) return `za ${days} ${days === 1 ? 'dzień' : 'dni'} ${hours} ${hours === 1 ? 'godzinę' : 'godziny'}`
+  if (days > 0 && hours > 0) return `za ${days} ${days === 1 ? 'dzień' : 'dni'} ${hours} ${hours === 1 ? 'godzinę' : 'godz.'}`
   if (days > 0) return `za ${days} ${days === 1 ? 'dzień' : 'dni'}`
-  if (hours > 0 && minutes > 0) return `za ${hours} ${hours === 1 ? 'godzinę' : 'godziny'} ${minutes} min`
-  if (hours > 0) return `za ${hours} ${hours === 1 ? 'godzinę' : 'godziny'}`
+  if (hours > 0 && minutes > 0) return `za ${hours} ${hours === 1 ? 'godzinę' : 'godz.'} ${minutes} min`
+  if (hours > 0) return `za ${hours} ${hours === 1 ? 'godzinę' : 'godz.'}`
   return `za ${minutes} min`
 }
 
