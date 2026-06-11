@@ -42,6 +42,7 @@ function timeUntil(iso: string) {
 export default function HomePage() {
   const { data: session, status } = useSession()
   const [upcoming, setUpcoming] = useState<Match[]>([])
+  const [predictedIds, setPredictedIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (status === 'unauthenticated') window.location.href = '/logowanie'
@@ -49,6 +50,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (status !== 'authenticated') return
+    const userId = session?.user?.id
     fetch('/api/matches')
       .then(r => r.json())
       .then((rounds: { matches: Match[]; name: string }[]) => {
@@ -59,8 +61,15 @@ export default function HomePage() {
           .filter(m => new Date(m.starts_at) > now && new Date(m.starts_at) <= in48h && m.status !== 'finished')
           .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
         setUpcoming(matches)
+        if (userId) {
+          fetch(`/api/predictions?user_id=${userId}`)
+            .then(r => r.json())
+            .then((preds: { match_id: number }[]) => {
+              setPredictedIds(new Set(preds.map(p => p.match_id)))
+            })
+        }
       })
-  }, [status])
+  }, [status, session?.user?.id])
 
   if (status === 'loading' || status === 'unauthenticated') return null
 
@@ -97,10 +106,17 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-2">
-              {upcoming.map(match => (
-                <div
+              {upcoming.map(match => {
+                const predicted = predictedIds.has(match.id)
+                return (
+                <a
                   key={match.id}
-                  className="rounded-xl px-4 py-3 bg-white/60 border border-[#2e3192]/10 flex items-center gap-3"
+                  href="/typowanie"
+                  className={`rounded-xl px-4 py-3 flex items-center gap-3 transition ${
+                    predicted
+                      ? 'bg-white/60 border border-[#2e3192]/10'
+                      : 'bg-orange-50 border border-orange-300 hover:border-orange-400'
+                  }`}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-center gap-3">
@@ -116,15 +132,25 @@ export default function HomePage() {
                       {formatDate(match.starts_at)}
                     </div>
                   </div>
-                  <div className="shrink-0 text-right">
+                  <div className="shrink-0 text-right space-y-1">
                     {timeUntil(match.starts_at) && (
-                      <span className="text-xs bg-[#2e3192]/10 text-[#2e3192] px-2 py-0.5 rounded-full font-medium">
-                        {timeUntil(match.starts_at)}
-                      </span>
+                      <div>
+                        <span className="text-xs bg-[#2e3192]/10 text-[#2e3192] px-2 py-0.5 rounded-full font-medium">
+                          {timeUntil(match.starts_at)}
+                        </span>
+                      </div>
+                    )}
+                    {!predicted && (
+                      <div>
+                        <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-medium">
+                          Nie obstawiono
+                        </span>
+                      </div>
                     )}
                   </div>
-                </div>
-              ))}
+                </a>
+                )
+              })}
             </div>
           </section>
         )}
