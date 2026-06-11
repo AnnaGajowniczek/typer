@@ -12,15 +12,73 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ================================================
+   DARK MODE — klasa .dark na <html>
+   ================================================ */
+
+/* Strona */
+.dark .bg-\[\#eff1f9\] { background-color: #0e0f1a; }
+
+/* Białe powierzchnie */
+.dark .bg-white { background-color: #181929; }
+.dark .bg-white\/90 { background-color: rgb(14 15 26 / 0.95); }
+.dark .bg-white\/60 { background-color: rgb(24 25 41 / 0.75); }
+
+/* Tekst bazowy */
+.dark .text-\[\#434351\] { color: #c8cad6; }
+.dark .text-\[\#434351\]\/70 { color: rgb(200 202 214 / 0.7); }
+.dark .text-\[\#434351\]\/60 { color: rgb(200 202 214 / 0.6); }
+.dark .text-\[\#434351\]\/50 { color: rgb(200 202 214 / 0.5); }
+.dark .text-\[\#434351\]\/40 { color: rgb(200 202 214 / 0.4); }
+.dark .text-\[\#434351\]\/30 { color: rgb(200 202 214 / 0.3); }
+
+/* Tekst niebieski */
+.dark .text-\[\#2e3192\] { color: #818cf8; }
+.dark .text-\[\#2e3192\]\/70 { color: rgb(129 140 248 / 0.7); }
+.dark .text-\[\#2e3192\]\/60 { color: rgb(129 140 248 / 0.6); }
+.dark .text-\[\#2e3192\]\/50 { color: rgb(129 140 248 / 0.5); }
+.dark .text-\[\#2e3192\]\/30 { color: rgb(129 140 248 / 0.3); }
+
+/* Tła z odcieniem niebieskiego */
+.dark .bg-\[\#2e3192\]\/\[0\.02\] { background-color: rgb(129 140 248 / 0.04); }
+.dark .bg-\[\#2e3192\]\/\[0\.03\] { background-color: rgb(129 140 248 / 0.06); }
+.dark .bg-\[\#2e3192\]\/\[0\.04\] { background-color: rgb(129 140 248 / 0.08); }
+.dark .bg-\[\#2e3192\]\/\[0\.06\] { background-color: rgb(129 140 248 / 0.1); }
+.dark .bg-\[\#2e3192\]\/\[0\.08\] { background-color: rgb(129 140 248 / 0.13); }
+.dark .bg-\[\#2e3192\]\/5 { background-color: rgb(129 140 248 / 0.08); }
+.dark .bg-\[\#2e3192\]\/8 { background-color: rgb(129 140 248 / 0.13); }
+.dark .bg-\[\#2e3192\]\/15 { background-color: rgb(129 140 248 / 0.2); }
+.dark .bg-\[\#2e3192\]\/20 { background-color: rgb(129 140 248 / 0.25); }
+
+/* Obramowania */
+.dark .border-\[\#2e3192\]\/10 { border-color: rgb(129 140 248 / 0.15); }
+.dark .border-\[\#2e3192\]\/15 { border-color: rgb(129 140 248 / 0.2); }
+.dark .border-\[\#2e3192\]\/20 { border-color: rgb(129 140 248 / 0.25); }
+.dark .border-\[\#2e3192\]\/30 { border-color: rgb(129 140 248 / 0.35); }
+.dark .border-\[\#2e3192\]\/50 { border-color: rgb(129 140 248 / 0.55); }
+
+/* Pola formularzy */
+.dark input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]),
+.dark select {
+  background-color: #1e1f38;
+  border-color: rgb(129 140 248 / 0.3);
+  color: #c8cad6;
+}
+.dark input::placeholder { color: rgb(200 202 214 / 0.3); }
+
+/* Nieobstawione mecze (pomarańczowe) */
+.dark .bg-orange-50 { background-color: rgb(154 52 18 / 0.12); }
+.dark .border-orange-300 { border-color: rgb(249 115 22 / 0.4); }
+.dark .bg-orange-100 { background-color: rgb(154 52 18 / 0.2); }
+.dark .text-orange-600 { color: #fb923c; }
+
+/* Hover na kartach meczów */
+.dark .hover\:bg-\[\#2e3192\]\/\[0\.06\]:hover { background-color: rgb(129 140 248 / 0.14); }
+.dark .hover\:border-\[\#2e3192\]\/20:hover { border-color: rgb(129 140 248 / 0.3); }
+.dark .hover\:border-orange-400:hover { border-color: rgb(249 115 22 / 0.6); }

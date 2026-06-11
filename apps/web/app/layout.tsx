@@ -29,6 +29,8 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      {/* eslint-disable-next-line @next/next/no-before-interactive-script-component */}
+      <script dangerouslySetInnerHTML={{ __html: `if(localStorage.getItem('darkMode')==='true')document.documentElement.classList.add('dark')` }} />
       <body className="min-h-full flex flex-col">
         <Providers>
           {children}
