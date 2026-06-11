@@ -55,11 +55,6 @@ export default function AdminPage() {
   const [resetForm, setResetForm] = useState<Record<number, string>>({})
   const [resetMsg, setResetMsg] = useState<Record<number, string>>({})
   const [registrationOpen, setRegistrationOpen] = useState<boolean | null>(null)
-  const [darkMode, setDarkMode] = useState(false)
-
-  useEffect(() => {
-    setDarkMode(localStorage.getItem('darkMode') === 'true')
-  }, [])
 
   useEffect(() => {
     try {
@@ -165,13 +160,6 @@ export default function AdminPage() {
     setTimeout(() => setSaved(null), 2000)
   }
 
-  function toggleDarkMode() {
-    const next = !darkMode
-    setDarkMode(next)
-    localStorage.setItem('darkMode', String(next))
-    document.documentElement.classList.toggle('dark', next)
-  }
-
   async function toggleRegistration() {
     const next = !registrationOpen
     setRegistrationOpen(next)
@@ -209,26 +197,6 @@ export default function AdminPage() {
       <Header />
 
       <div className="max-w-4xl mx-auto px-4 pt-6 space-y-8">
-
-        {/* Wygląd */}
-        <section>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="text-xs font-bold uppercase tracking-widest text-[#2e3192]">Wygląd</div>
-            <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
-          </div>
-          <div className="rounded-xl px-4 py-3 bg-[#2e3192]/[0.03] border border-[#2e3192]/10 flex items-center gap-4">
-            <span className="text-sm flex-1">Tryb ciemny</span>
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <div
-                onClick={toggleDarkMode}
-                className={`w-10 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-[#2e3192]' : 'bg-[#2e3192]/20'}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${darkMode ? 'left-5' : 'left-1'}`} />
-              </div>
-              <span className="text-xs text-[#434351]/60">{darkMode ? 'Włączony' : 'Wyłączony'}</span>
-            </label>
-          </div>
-        </section>
 
         {/* Rejestracja */}
         <section>
