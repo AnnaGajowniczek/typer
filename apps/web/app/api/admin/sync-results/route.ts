@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Brak dostępu.' }, { status: 403 })
   }
 
-  // Znajdź mecze które zaczęły się w ciągu ostatnich 4h i nie są jeszcze zakończone
+  // Wszystkie niezakończone mecze które zaczęły się co najmniej 2h temu
   const [pending] = await pool.execute(`
     SELECT m.id, m.starts_at, m.home_score, m.away_score,
            t1.name AS home_team, t2.name AS away_team
@@ -87,41 +87,44 @@ export async function GET(req: NextRequest) {
     JOIN teams t1 ON m.home_team_id = t1.id
     JOIN teams t2 ON m.away_team_id = t2.id
     WHERE m.status != 'finished'
-      AND m.starts_at <= NOW()
-      AND m.starts_at >= DATE_SUB(NOW(), INTERVAL 4 HOUR)
+      AND m.starts_at <= DATE_SUB(NOW(), INTERVAL 2 HOUR)
   `) as [RowDataPacket[], unknown]
 
   if ((pending as RowDataPacket[]).length === 0) {
     return NextResponse.json({ message: 'Brak meczów do zaktualizowania.', updated: 0 })
   }
 
-  // Pobierz wyniki z api-football dla dzisiejszej daty
-  const today = new Date().toISOString().slice(0, 10)
-  const apiRes = await fetch(
-    `https://v3.football.api-sports.io/fixtures?league=1&season=2026&date=${today}`,
-    {
-      headers: {
-        'x-rapidapi-host': 'v3.football.api-sports.io',
-        'x-rapidapi-key': process.env.RAPID_API_KEY ?? '',
-      },
-    }
-  )
+  // Pobierz unikalne daty meczów i zapytaj API dla każdej z nich
+  const dates = [...new Set((pending as RowDataPacket[]).map(m =>
+    new Date(m.starts_at).toISOString().slice(0, 10)
+  ))]
 
-  if (!apiRes.ok) {
-    return NextResponse.json({ error: `API error: ${apiRes.status}` }, { status: 502 })
-  }
-
-  const apiData = await apiRes.json()
-  const fixtures: {
+  const allFixtures: {
     fixture: { status: { short: string } }
     teams: { home: { name: string }; away: { name: string } }
     goals: { home: number | null; away: number | null }
-  }[] = apiData.response ?? []
+  }[] = []
+
+  for (const date of dates) {
+    const apiRes = await fetch(
+      `https://v3.football.api-sports.io/fixtures?league=1&season=2026&date=${date}`,
+      {
+        headers: {
+          'x-rapidapi-host': 'v3.football.api-sports.io',
+          'x-rapidapi-key': process.env.RAPID_API_KEY ?? '',
+        },
+      }
+    )
+    if (apiRes.ok) {
+      const apiData = await apiRes.json()
+      allFixtures.push(...(apiData.response ?? []))
+    }
+  }
 
   let updated = 0
 
   for (const match of pending as RowDataPacket[]) {
-    const fixture = fixtures.find(f => {
+    const fixture = allFixtures.find(f => {
       const apiHome = toPolish(f.teams.home.name)
       const apiAway = toPolish(f.teams.away.name)
       return apiHome === match.home_team && apiAway === match.away_team
