@@ -26,7 +26,8 @@ export const authConfig: NextAuthConfig = {
       const isPublic =
         pathname.startsWith('/logowanie') ||
         pathname.startsWith('/rejestracja') ||
-        pathname.startsWith('/api/auth')
+        pathname.startsWith('/api/auth') ||
+        pathname.startsWith('/api/admin/sync-results')
 
       if (pathname.startsWith('/admin')) {
         return isLoggedIn && isAdmin
