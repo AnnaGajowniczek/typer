@@ -79,7 +79,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Brak dostępu.' }, { status: 403 })
   }
 
-  // Wszystkie niezakończone mecze które zaczęły się co najmniej 2h temu
+  // Mecze które zaczęły się 150–160 minut temu i nie są jeszcze zakończone
+  // (155 min = 90 min mecz + 45 min nadgodziny + bufor; okno 10 min = 2× interwał crona)
   const [pending] = await pool.execute(`
     SELECT m.id, m.starts_at, m.home_score, m.away_score,
            t1.name AS home_team, t2.name AS away_team
@@ -87,7 +88,8 @@ export async function GET(req: NextRequest) {
     JOIN teams t1 ON m.home_team_id = t1.id
     JOIN teams t2 ON m.away_team_id = t2.id
     WHERE m.status != 'finished'
-      AND m.starts_at <= DATE_SUB(NOW(), INTERVAL 2 HOUR)
+      AND m.starts_at <= DATE_SUB(NOW(), INTERVAL 150 MINUTE)
+      AND m.starts_at >= DATE_SUB(NOW(), INTERVAL 160 MINUTE)
   `) as [RowDataPacket[], unknown]
 
   if ((pending as RowDataPacket[]).length === 0) {
