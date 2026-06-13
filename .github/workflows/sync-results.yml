@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Fetch and update match results
         run: |
-          curl -s -X GET https://typer.azurewebsites.net/api/admin/sync-results \
+          curl -s -X GET https://typer.itss.pl/api/admin/sync-results \
             -H "x-sync-secret: ${{ secrets.SYNC_SECRET }}" \
             -w "\nHTTP %{http_code}" \
             --max-time 30
