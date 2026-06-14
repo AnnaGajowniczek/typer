@@ -23,3 +23,21 @@ const next = spawn(process.execPath, [nextBin, 'start', '-p', port], {
   cwd: __dirname,
 })
 next.on('exit', code => process.exit(code || 0))
+
+function syncResults() {
+  const secret = process.env.SYNC_SECRET
+  if (!secret) return
+  fetch(`http://localhost:${port}/api/admin/sync-results`, {
+    headers: { 'x-sync-secret': secret },
+    signal: AbortSignal.timeout(30000),
+  })
+    .then(r => r.json())
+    .then(d => console.log('[sync-cron]', new Date().toISOString(), d.message, `(updated: ${d.updated})`))
+    .catch(e => console.error('[sync-cron]', new Date().toISOString(), 'Błąd:', e.message))
+}
+
+// Poczekaj 60s na start Next.js, potem sync co godzinę
+setTimeout(() => {
+  syncResults()
+  setInterval(syncResults, 60 * 60 * 1000)
+}, 60 * 1000)
