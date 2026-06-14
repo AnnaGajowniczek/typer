@@ -121,6 +121,12 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const debug = {
+    pending: (pending as RowDataPacket[]).map(m => `${m.home_team} vs ${m.away_team} (${new Date(m.starts_at).toISOString()})`),
+    dates,
+    fixturesFromApi: allFixtures.map(f => `${f.teams.home.name} vs ${f.teams.away.name} [${f.fixture.status.short}]`),
+  }
+
   let updated = 0
 
   for (const match of pending as RowDataPacket[]) {
@@ -182,5 +188,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ message: `Zaktualizowano ${updated} mecz(y).`, updated })
+  return NextResponse.json({ message: `Zaktualizowano ${updated} mecz(y).`, updated, debug })
 }
