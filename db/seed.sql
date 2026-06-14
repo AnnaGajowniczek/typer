@@ -86,10 +86,10 @@ FROM (
   SELECT 1, 'Holandia', 'Japonia', '2026-06-14 20:00:00' UNION ALL
   SELECT 1, 'Wybrzeże Kości Słoniowej', 'Ekwador', '2026-06-14 23:00:00' UNION ALL
   SELECT 1, 'Szwecja', 'Tunezja', '2026-06-15 02:00:00' UNION ALL
-  SELECT 1, 'Hiszpania', 'Wyspy Zielonego Przylądka', '2026-06-15 17:00:00' UNION ALL
-  SELECT 1, 'Belgia', 'Egipt', '2026-06-15 22:00:00' UNION ALL
+  SELECT 1, 'Hiszpania', 'Wyspy Zielonego Przylądka', '2026-06-15 16:00:00' UNION ALL
+  SELECT 1, 'Belgia', 'Egipt', '2026-06-15 19:00:00' UNION ALL
   SELECT 1, 'Arabia Saudyjska', 'Urugwaj', '2026-06-15 22:00:00' UNION ALL
-  SELECT 1, 'Iran', 'Nowa Zelandia', '2026-06-16 04:00:00' UNION ALL
+  SELECT 1, 'Iran', 'Nowa Zelandia', '2026-06-16 01:00:00' UNION ALL
   SELECT 1, 'Francja', 'Senegal', '2026-06-16 19:00:00' UNION ALL
   SELECT 1, 'Irak', 'Norwegia', '2026-06-16 22:00:00' UNION ALL
   SELECT 1, 'Argentyna', 'Algieria', '2026-06-17 01:00:00' UNION ALL
