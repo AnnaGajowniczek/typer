@@ -55,11 +55,21 @@ export default function TypowaniePage() {
   const [savingId, setSavingId] = useState<number | null>(null)
   const [savedId, setSavedId] = useState<number | null>(null)
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({})
+  const [hideFinished, setHideFinished] = useState(false)
   const debounceRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
 
   useEffect(() => {
     setCollapsed(loadCollapsed())
+    setHideFinished(localStorage.getItem('typowanie_hide_finished') === 'true')
   }, [])
+
+  function toggleHideFinished() {
+    setHideFinished(prev => {
+      const next = !prev
+      localStorage.setItem('typowanie_hide_finished', String(next))
+      return next
+    })
+  }
 
   function toggleRound(roundId: number) {
     setCollapsed(prev => {
@@ -149,7 +159,24 @@ export default function TypowaniePage() {
       <Header />
 
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-8">
+
+        <div className="flex justify-end">
+          <button
+            onClick={toggleHideFinished}
+            className="flex items-center gap-2 text-xs text-[#434351]/60 hover:text-[#434351] transition"
+          >
+            <div className={`w-8 h-5 rounded-full transition-colors relative ${hideFinished ? 'bg-[#2e3192]' : 'bg-[#2e3192]/20'}`}>
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${hideFinished ? 'left-3.5' : 'left-0.5'}`} />
+            </div>
+            Ukryj zakończone
+          </button>
+        </div>
+
         {rounds.map(round => {
+          const visibleMatches = hideFinished
+            ? round.matches.filter(m => m.status !== 'finished')
+            : round.matches
+          if (visibleMatches.length === 0) return null
           const isCollapsed = !!collapsed[round.id]
           return (
           <section key={round.id}>
@@ -167,7 +194,7 @@ export default function TypowaniePage() {
             </button>
 
             {!isCollapsed && <div className="space-y-2">
-              {round.matches.map(match => {
+              {visibleMatches.map(match => {
                 const locked = isLocked(match.starts_at, match.status)
                 const score = scores[match.id] ?? { home: '', away: '' }
                 const filled = score.home !== '' && score.away !== ''
