@@ -48,6 +48,27 @@ async function setup() {
       "UPDATE users SET is_admin = TRUE WHERE email IN ('anna@itss.pl', 'annaX@itss.pl')"
     )
 
+    // Korekta godzin meczów 15-16 czerwca (źródło: Al Jazeera)
+    await conn.query(`
+      UPDATE matches m
+      JOIN teams t1 ON m.home_team_id = t1.id
+      SET m.starts_at = '2026-06-15 16:00:00'
+      WHERE t1.name = 'Hiszpania' AND m.starts_at = '2026-06-15 17:00:00'
+    `)
+    await conn.query(`
+      UPDATE matches m
+      JOIN teams t1 ON m.home_team_id = t1.id
+      SET m.starts_at = '2026-06-15 19:00:00'
+      WHERE t1.name = 'Belgia' AND m.starts_at = '2026-06-15 22:00:00'
+    `)
+    await conn.query(`
+      UPDATE matches m
+      JOIN teams t1 ON m.home_team_id = t1.id
+      SET m.starts_at = '2026-06-16 01:00:00'
+      WHERE t1.name = 'Iran' AND m.starts_at = '2026-06-16 04:00:00'
+    `)
+    console.log('[setup-db] Korekty godzin meczów zastosowane')
+
     const [[{ count }]] = await conn.query('SELECT COUNT(*) as count FROM rounds')
     if (Number(count) === 0) {
       console.log('[setup-db] Seeding data...')
