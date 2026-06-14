@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
 
   for (const date of dates) {
     const apiRes = await fetch(
-      `https://v3.football.api-sports.io/fixtures?league=1&season=2026&date=${date}`,
+      `https://v3.football.api-sports.io/fixtures?date=${date}`,
       {
         headers: {
           'x-rapidapi-host': 'v3.football.api-sports.io',
