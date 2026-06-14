@@ -2,7 +2,7 @@ name: Sync match results
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # co 5 minut
+    - cron: '0 * * * *'   # co godzinę
   workflow_dispatch:          # możliwość ręcznego uruchomienia
 
 jobs:
