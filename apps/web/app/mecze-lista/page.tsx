@@ -41,8 +41,10 @@ export default function MeczePage() {
   const [rounds, setRounds] = useState<Round[]>([])
   const [loading, setLoading] = useState(true)
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
+  const [hideFinished, setHideFinished] = useState(false)
 
   useEffect(() => {
+    setHideFinished(localStorage.getItem('mecze_hide_finished') === 'true')
     fetch('/api/matches')
       .then(r => r.json())
       .then((d: Round[]) => {
@@ -54,6 +56,14 @@ export default function MeczePage() {
         setCollapsed(new Set(allFinished))
       })
   }, [])
+
+  function toggleHideFinished() {
+    setHideFinished(prev => {
+      const next = !prev
+      localStorage.setItem('mecze_hide_finished', String(next))
+      return next
+    })
+  }
 
   function toggleRound(id: number) {
     setCollapsed(prev => {
@@ -73,11 +83,28 @@ export default function MeczePage() {
           <p className="text-[#434351]/50 text-sm mt-1">Kliknij mecz żeby zobaczyć typy graczy</p>
         </div>
 
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={toggleHideFinished}
+            className="flex items-center gap-2 text-xs text-[#434351]/60 hover:text-[#434351] transition"
+          >
+            <div className={`w-8 h-5 rounded-full transition-colors relative ${hideFinished ? 'bg-[#2e3192]' : 'bg-[#2e3192]/20'}`}>
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${hideFinished ? 'left-3.5' : 'left-0.5'}`} />
+            </div>
+            Ukryj zakończone
+          </button>
+        </div>
+
         {loading ? (
           <div className="text-center text-[#434351]/30 py-16">Ładowanie…</div>
         ) : (
           <div className="space-y-8">
-            {rounds.map(round => (
+            {rounds.map(round => {
+              const visibleMatches = hideFinished
+                ? round.matches.filter(m => m.status !== 'finished')
+                : round.matches
+              if (visibleMatches.length === 0) return null
+              return (
               <section key={round.id}>
                 <button
                   onClick={() => toggleRound(round.id)}
@@ -94,7 +121,7 @@ export default function MeczePage() {
 
                 {!collapsed.has(round.id) && (
                 <div className="space-y-2">
-                  {round.matches.map(match => (
+                  {visibleMatches.map(match => (
                     <a
                       key={match.id}
                       href={`/mecze/${match.id}`}
@@ -134,7 +161,8 @@ export default function MeczePage() {
                 </div>
                 )}
               </section>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
