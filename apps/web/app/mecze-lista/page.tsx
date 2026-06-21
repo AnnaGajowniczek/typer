@@ -87,8 +87,8 @@ export default function MeczePage() {
                     {round.name}
                   </div>
                   <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
-                  <span className="text-[#2e3192]/40 group-hover:text-[#2e3192]/70 transition text-xs shrink-0">
-                    {collapsed.has(round.id) ? '▼' : '▲'}
+                  <span className={`text-[#2e3192]/50 text-xs transition-transform duration-200 ${collapsed.has(round.id) ? '' : 'rotate-180'}`}>
+                    ▲
                   </span>
                 </button>
 
