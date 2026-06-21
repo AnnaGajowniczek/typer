@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Header from '@/components/Header'
 
@@ -30,6 +30,7 @@ export default function RankingPage() {
   const [players, setPlayers] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
   const [finishedCount, setFinishedCount] = useState(0)
+  const myRowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     Promise.all([
@@ -43,6 +44,12 @@ export default function RankingPage() {
   }, [])
 
   const maxTyped = Math.max(...players.map(p => Number(p.typed)), 1)
+  const myIndex = players.findIndex(p => session?.user?.id === p.id)
+  const me = myIndex >= 0 ? players[myIndex] : null
+
+  function scrollToMe() {
+    myRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 
   return (
     <main className="min-h-screen bg-[#eff1f9] text-[#434351] pb-12">
@@ -69,6 +76,23 @@ export default function RankingPage() {
           </span>
         </div>
 
+        {me && (
+          <button
+            onClick={scrollToMe}
+            className="w-full mb-4 flex items-center gap-3 rounded-xl px-4 py-3 bg-[#2e3192] text-white hover:bg-blue-900 transition text-left"
+          >
+            <span className="text-2xl font-bold w-10 shrink-0 text-center">#{myIndex + 1}</span>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold truncate">{me.display_name}</div>
+              <div className="text-xs text-white/60">Twoja pozycja — kliknij aby przewinąć</div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-2xl font-bold">{Number(me.points)}</div>
+              <div className="text-xs text-white/60">pkt</div>
+            </div>
+          </button>
+        )}
+
         {loading ? (
           <div className="text-center text-[#434351]/30 py-16">Ładowanie…</div>
         ) : (
@@ -84,6 +108,7 @@ export default function RankingPage() {
               return (
                 <div
                   key={player.id}
+                  ref={isMe ? myRowRef : undefined}
                   className={`rounded-xl px-4 py-4 border transition ${
                     isMe
                       ? 'bg-[#2e3192]/8 border-[#2e3192]/50'
