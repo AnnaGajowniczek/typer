@@ -40,12 +40,28 @@ function formatDate(iso: string) {
 export default function MeczePage() {
   const [rounds, setRounds] = useState<Round[]>([])
   const [loading, setLoading] = useState(true)
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     fetch('/api/matches')
       .then(r => r.json())
-      .then(d => { setRounds(d); setLoading(false) })
+      .then((d: Round[]) => {
+        setRounds(d)
+        setLoading(false)
+        const allFinished = d
+          .filter(r => r.matches.length > 0 && r.matches.every(m => m.status === 'finished'))
+          .map(r => r.id)
+        setCollapsed(new Set(allFinished))
+      })
   }, [])
+
+  function toggleRound(id: number) {
+    setCollapsed(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
 
   return (
     <main className="min-h-screen bg-[#eff1f9] text-[#434351] pb-12">
@@ -63,13 +79,20 @@ export default function MeczePage() {
           <div className="space-y-8">
             {rounds.map(round => (
               <section key={round.id}>
-                <div className="flex items-center gap-3 mb-3">
+                <button
+                  onClick={() => toggleRound(round.id)}
+                  className="flex items-center gap-3 mb-3 w-full text-left group"
+                >
                   <div className="text-xs font-bold uppercase tracking-widest text-[#2e3192]">
                     {round.name}
                   </div>
                   <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
-                </div>
+                  <span className="text-[#2e3192]/40 group-hover:text-[#2e3192]/70 transition text-xs shrink-0">
+                    {collapsed.has(round.id) ? '▼' : '▲'}
+                  </span>
+                </button>
 
+                {!collapsed.has(round.id) && (
                 <div className="space-y-2">
                   {round.matches.map(match => (
                     <a
@@ -109,6 +132,7 @@ export default function MeczePage() {
                     </a>
                   ))}
                 </div>
+                )}
               </section>
             ))}
           </div>
