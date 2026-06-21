@@ -44,7 +44,7 @@ export default function RankingPage() {
   }, [])
 
   const maxTyped = Math.max(...players.map(p => Number(p.typed)), 1)
-  const myIndex = players.findIndex(p => session?.user?.id === p.id)
+  const myIndex = players.findIndex(p => String(session?.user?.id) === String(p.id))
   const me = myIndex >= 0 ? players[myIndex] : null
 
   function scrollToMe() {
@@ -98,7 +98,7 @@ export default function RankingPage() {
         ) : (
           <div className="space-y-3">
             {players.map((player, i) => {
-              const isMe = session?.user?.id === player.id
+              const isMe = String(session?.user?.id) === String(player.id)
               const pos = i + 1
               const points = Number(player.points)
               const typed = Number(player.typed)
