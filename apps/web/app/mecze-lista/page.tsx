@@ -144,7 +144,7 @@ export default function MeczePage() {
                           <Flag team={match.home_team} />{' '}{match.home_team}
                         </span>
                         <span className="text-sm font-bold shrink-0 tabular-nums text-[#434351]/60">
-                          {match.status === 'finished' || match.status === 'live'
+                          {(match.status === 'finished' || match.status === 'live') && match.home_score != null && match.away_score != null
                             ? `${match.home_score} : ${match.away_score}`
                             : '–:–'}
                         </span>
