@@ -113,8 +113,7 @@ export default function PlayoffsPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/logowanie')
-    if (status === 'authenticated' && !session?.user?.isAdmin) router.push('/')
-  }, [status, session, router])
+  }, [status, router])
 
   useEffect(() => {
     fetch('/api/matches')
@@ -128,7 +127,6 @@ export default function PlayoffsPage() {
   if (status === 'loading' || loading) return (
     <main className="min-h-screen bg-[#eff1f9]"><Header /></main>
   )
-  if (!session?.user?.isAdmin) return null
 
   const baseCount = rounds[0]?.matches.length ?? 16
   const totalH = baseCount * SLOT_H_BASE
