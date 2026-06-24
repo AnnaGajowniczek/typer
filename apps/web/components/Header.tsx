@@ -47,6 +47,7 @@ export default function Header() {
           {navLink('/typowanie', 'Typowanie')}
           {navLink('/ranking', 'Ranking')}
           {navLink('/mecze-lista', 'Mecze')}
+          {session?.user?.isAdmin && navLink('/playoffs', 'Playoffs')}
           {session?.user?.isAdmin && navLink('/admin', 'Panel administracyjny')}
         </div>
 
