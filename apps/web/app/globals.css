@@ -84,6 +84,11 @@ body {
   filter: brightness(0) invert(1);
 }
 
+/* Odznaki punktowe (1 pkt) */
+.dark .text-yellow-600 { color: #fde047; }
+.dark .bg-yellow-400\/10 { background-color: rgb(234 179 8 / 0.15); }
+.dark .border-yellow-400\/30 { border-color: rgb(234 179 8 / 0.35); }
+
 /* Hover na kartach meczów */
 .dark .hover\:bg-\[\#2e3192\]\/\[0\.06\]:hover { background-color: rgb(129 140 248 / 0.14); }
 .dark .hover\:border-\[\#2e3192\]\/20:hover { border-color: rgb(129 140 248 / 0.3); }

@@ -39,7 +39,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
 
 const PTS_STYLE: Record<number, string> = {
   3: 'bg-[#2e3192]/20 text-[#2e3192] border-[#2e3192]/30',
-  1: 'bg-yellow-500/20 text-yellow-300 border-yellow-600/40',
+  1: 'bg-yellow-400/10 text-yellow-600 border-yellow-400/30',
   0: 'bg-red-500/10 text-red-400/70 border-red-600/20',
 }
 
