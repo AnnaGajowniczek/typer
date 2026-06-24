@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server'
 import pool from '@/lib/db'
 import type { RowDataPacket } from 'mysql2'
 
+const ROUND_NAMES: Record<string, string> = {
+  '1/32 finalu':  '1/32 finału',
+  '1/16 finalu':  '1/16 finału',
+  'Cwiercfinaly': 'Ćwierćfinały',
+  'Polfinaly':    'Półfinały',
+  'Final':        'Finał',
+}
+
 export async function GET() {
   await pool.execute(
     `UPDATE matches SET status = 'live'
@@ -37,7 +45,7 @@ export async function GET() {
     if (!roundMap[row.round_id]) {
       roundMap[row.round_id] = {
         id: row.round_id,
-        name: row.round_name,
+        name: ROUND_NAMES[row.round_name] ?? row.round_name,
         stage: row.stage,
         order_nr: row.order_nr,
         matches: [],
