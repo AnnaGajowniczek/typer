@@ -9,131 +9,176 @@ async function requireAdmin() {
   return session
 }
 
-// Bracket template for 1/16 finału (matches ordered by starts_at, index 0-15)
-// null = slot for best 3rd-place team
-const BRACKET: Array<[string | null, number | null, string | null, number | null]> = [
-  ['A', 1, 'B', 2],
-  ['C', 1, 'D', 2],
-  ['E', 1, 'F', 2],
-  ['G', 1, 'H', 2],
-  ['I', 1, 'J', 2],
-  ['K', 1, 'L', 2],
-  ['B', 1, 'A', 2],
-  ['D', 1, 'C', 2],
-  ['F', 1, 'E', 2],
-  ['H', 1, 'G', 2],
-  ['J', 1, 'I', 2],
-  ['L', 1, 'K', 2],
-  [null, 3, null, 3],
-  [null, 3, null, 3],
-  [null, 3, null, 3],
-  [null, 3, null, 3],
-]
+// Mapowanie angielskich nazw (api-sports) → polskich (nasza baza)
+const TEAM_MAP: Record<string, string> = {
+  'Mexico': 'Meksyk',
+  'South Korea': 'Korea Południowa',
+  'Korea Republic': 'Korea Południowa',
+  'Czech Republic': 'Czechy',
+  'South Africa': 'RPA',
+  'Canada': 'Kanada',
+  'Bosnia and Herzegovina': 'Bośnia i Hercegowina',
+  'Bosnia': 'Bośnia i Hercegowina',
+  'Qatar': 'Katar',
+  'Switzerland': 'Szwajcaria',
+  'Brazil': 'Brazylia',
+  'Morocco': 'Maroko',
+  'Haiti': 'Haiti',
+  'Scotland': 'Szkocja',
+  'United States': 'Stany Zjednoczone',
+  'USA': 'Stany Zjednoczone',
+  'Australia': 'Australia',
+  'Turkey': 'Turcja',
+  'Turkiye': 'Turcja',
+  'Paraguay': 'Paragwaj',
+  'Germany': 'Niemcy',
+  'Ecuador': 'Ekwador',
+  "Cote d'Ivoire": 'Wybrzeże Kości Słoniowej',
+  'Ivory Coast': 'Wybrzeże Kości Słoniowej',
+  'Curaçao': 'Curaçao',
+  'Curacao': 'Curaçao',
+  'Netherlands': 'Holandia',
+  'Japan': 'Japonia',
+  'Sweden': 'Szwecja',
+  'Tunisia': 'Tunezja',
+  'Belgium': 'Belgia',
+  'Egypt': 'Egipt',
+  'Iran': 'Iran',
+  'New Zealand': 'Nowa Zelandia',
+  'Spain': 'Hiszpania',
+  'Cape Verde': 'Wyspy Zielonego Przylądka',
+  'Saudi Arabia': 'Arabia Saudyjska',
+  'Uruguay': 'Urugwaj',
+  'France': 'Francja',
+  'Senegal': 'Senegal',
+  'Iraq': 'Irak',
+  'Norway': 'Norwegia',
+  'Argentina': 'Argentyna',
+  'Algeria': 'Algieria',
+  'Austria': 'Austria',
+  'Jordan': 'Jordania',
+  'Portugal': 'Portugalia',
+  'DR Congo': 'DR Kongo',
+  'Congo DR': 'DR Kongo',
+  'Uzbekistan': 'Uzbekistan',
+  'Colombia': 'Kolumbia',
+  'England': 'Anglia',
+  'Croatia': 'Chorwacja',
+  'Ghana': 'Ghana',
+  'Panama': 'Panama',
+}
+
+function toPolish(name: string): string {
+  return TEAM_MAP[name] ?? name
+}
 
 export async function POST() {
   if (!await requireAdmin()) {
     return NextResponse.json({ error: 'Brak dostępu.' }, { status: 403 })
   }
 
-  // Pobierz tabele grupowe ze skończonych meczów
-  const [rows] = await pool.execute(`
-    SELECT
-      t.id   AS team_id,
-      t.name AS team_name,
-      g.name AS group_name,
-      COUNT(CASE WHEN m.status = 'finished' THEN 1 END) AS played,
-      SUM(CASE WHEN m.status != 'finished' THEN 0
-               WHEN m.home_team_id = t.id THEN
-                 CASE WHEN m.home_score > m.away_score THEN 3
-                      WHEN m.home_score = m.away_score THEN 1 ELSE 0 END
-               WHEN m.away_team_id = t.id THEN
-                 CASE WHEN m.away_score > m.home_score THEN 3
-                      WHEN m.away_score = m.home_score THEN 1 ELSE 0 END
-               ELSE 0 END) AS points,
-      SUM(CASE WHEN m.status != 'finished' THEN 0
-               WHEN m.home_team_id = t.id THEN m.home_score - m.away_score
-               WHEN m.away_team_id = t.id THEN m.away_score - m.home_score
-               ELSE 0 END) AS goal_diff,
-      SUM(CASE WHEN m.status != 'finished' THEN 0
-               WHEN m.home_team_id = t.id THEN m.home_score
-               WHEN m.away_team_id = t.id THEN m.away_score
-               ELSE 0 END) AS goals_for
-    FROM teams t
-    JOIN \`groups\` g ON g.id = t.group_id
-    LEFT JOIN matches m ON (m.home_team_id = t.id OR m.away_team_id = t.id)
-      AND m.round_id IN (SELECT id FROM rounds WHERE stage = 'group')
-    GROUP BY t.id, t.name, g.name
-    ORDER BY g.name, points DESC, goal_diff DESC, goals_for DESC
-  `) as [RowDataPacket[], unknown]
-
-  // Zbuduj tabele per-grupa i ustal rankingi
-  const groups: Record<string, RowDataPacket[]> = {}
-  for (const row of rows as RowDataPacket[]) {
-    if (!groups[row.group_name]) groups[row.group_name] = []
-    groups[row.group_name].push(row)
+  const apiKey = process.env.RAPID_API_KEY
+  if (!apiKey) {
+    return NextResponse.json({ error: 'Brak klucza RAPID_API_KEY.' }, { status: 500 })
   }
 
-  // team_id per (group, rank) dla grup, w których wszystkie mecze skończone (played=3)
-  const resolved: Record<string, number> = {}   // 'A1', 'A2', 'A3' → team_id
-  const thirds: RowDataPacket[] = []
-
-  for (const [grp, teams] of Object.entries(groups)) {
-    if (teams.every(t => Number(t.played) === 3)) {
-      teams.forEach((t, i) => {
-        resolved[`${grp}${i + 1}`] = t.team_id
-        if (i === 2) thirds.push({ ...t, group_name: grp })
-      })
-    }
-  }
-
-  // Posortuj 3. miejsca (do slotów 3rd w bracketcie)
-  thirds.sort((a, b) =>
-    Number(b.points) - Number(a.points) ||
-    Number(b.goal_diff) - Number(a.goal_diff) ||
-    Number(b.goals_for) - Number(a.goals_for)
-  )
-
-  // Pobierz mecze 1/32 w kolejności starts_at
-  const [matchRows] = await pool.execute(`
-    SELECT m.id
+  // Pobierz wszystkie mecze fazy pucharowej z DB (z datami)
+  const [dbMatches] = await pool.execute(`
+    SELECT m.id, m.starts_at, r.order_nr
     FROM matches m
-    JOIN rounds r ON r.id = m.round_id
-    WHERE r.order_nr = 4
+    JOIN rounds r ON m.round_id = r.id
+    WHERE r.stage = 'knockout'
     ORDER BY m.starts_at
   `) as [RowDataPacket[], unknown]
 
-  const playoffMatches = matchRows as RowDataPacket[]
-  let thirdIdx = 0
+  // Unikalne daty do zapytania do API
+  const dates = [...new Set((dbMatches as RowDataPacket[]).map(m =>
+    new Date(m.starts_at).toISOString().slice(0, 10)
+  ))]
+
+  // Pobierz fixtures z API dla każdej daty
+  const allFixtures: {
+    fixture: { id: number; date: string }
+    league: { id: number; name: string }
+    teams: { home: { name: string }; away: { name: string } }
+  }[] = []
+
+  for (const date of dates) {
+    const res = await fetch(
+      `https://v3.football.api-sports.io/fixtures?date=${date}`,
+      {
+        headers: {
+          'x-rapidapi-host': 'v3.football.api-sports.io',
+          'x-rapidapi-key': apiKey,
+        },
+      }
+    )
+    if (!res.ok) continue
+    const data = await res.json()
+
+    // Filtruj World Cup (league ID=1) lub po nazwie jako fallback
+    const wcFixtures = (data.response ?? []).filter((f: { league: { id: number; name: string } }) =>
+      f.league.id === 1 || f.league.name?.toLowerCase().includes('world cup')
+    )
+    allFixtures.push(...wcFixtures)
+  }
+
+  if (allFixtures.length === 0) {
+    return NextResponse.json({
+      message: 'API nie zwróciło żadnych meczów World Cup dla podanych dat.',
+      updated: 0,
+      dates,
+    })
+  }
+
+  // Pobierz wszystkie drużyny z DB (nazwa → id)
+  const [teamRows] = await pool.execute('SELECT id, name FROM teams') as [RowDataPacket[], unknown]
+  const teamByName: Record<string, number> = {}
+  for (const t of teamRows as RowDataPacket[]) {
+    teamByName[t.name] = t.id
+  }
+
   let updated = 0
+  const notFound: string[] = []
 
-  for (let i = 0; i < Math.min(BRACKET.length, playoffMatches.length); i++) {
-    const [hGroup, hRank, aGroup, aRank] = BRACKET[i]
-    const matchId = playoffMatches[i].id
+  for (const fixture of allFixtures) {
+    const homeNamePl = toPolish(fixture.teams.home.name)
+    const awayNamePl = toPolish(fixture.teams.away.name)
 
-    let homeTeamId: number | null = null
-    let awayTeamId: number | null = null
+    const homeTeamId = teamByName[homeNamePl] ?? null
+    const awayTeamId = teamByName[awayNamePl] ?? null
 
-    if (hRank === 3) {
-      // slot 3. miejsca — zawsze przesuwamy indeks niezależnie od dostępności
-      homeTeamId = thirds[thirdIdx]?.team_id ?? null
-      awayTeamId = thirds[thirdIdx + 1]?.team_id ?? null
-      thirdIdx += 2
-    } else {
-      homeTeamId = hGroup ? (resolved[`${hGroup}${hRank}`] ?? null) : null
-      awayTeamId = aGroup ? (resolved[`${aGroup}${aRank}`] ?? null) : null
-    }
+    if (!homeTeamId) notFound.push(fixture.teams.home.name)
+    if (!awayTeamId) notFound.push(fixture.teams.away.name)
 
-    if (homeTeamId == null && awayTeamId == null) continue
+    if (!homeTeamId && !awayTeamId) continue
+
+    // Znajdź mecz w DB po dacie (tolerancja ±2h)
+    const fixtureDate = new Date(fixture.fixture.date)
+    const [matchRows] = await pool.execute(`
+      SELECT m.id FROM matches m
+      JOIN rounds r ON m.round_id = r.id
+      WHERE r.stage = 'knockout'
+        AND ABS(TIMESTAMPDIFF(MINUTE, m.starts_at, ?)) < 120
+    `, [fixtureDate.toISOString().slice(0, 19).replace('T', ' ')]) as [RowDataPacket[], unknown]
+
+    const match = (matchRows as RowDataPacket[])[0]
+    if (!match) continue
 
     await pool.execute(
       `UPDATE matches SET
         home_team_id = COALESCE(?, home_team_id),
         away_team_id = COALESCE(?, away_team_id)
        WHERE id = ?`,
-      [homeTeamId, awayTeamId, matchId]
+      [homeTeamId, awayTeamId, match.id]
     )
     updated++
   }
 
-  return NextResponse.json({ message: `Uzupełniono ${updated} meczy playoff.`, updated })
+  return NextResponse.json({
+    message: `Uzupełniono ${updated} meczy na podstawie danych z API.`,
+    updated,
+    fixturesFromApi: allFixtures.length,
+    notFound: [...new Set(notFound)],
+  })
 }
