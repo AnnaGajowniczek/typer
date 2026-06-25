@@ -9,8 +9,8 @@ INSERT INTO rounds (name, stage, order_nr) VALUES
   ('Faza grupowa - kolejka 1', 'group',    1),
   ('Faza grupowa - kolejka 2', 'group',    2),
   ('Faza grupowa - kolejka 3', 'group',    3),
-  ('1/32 finału',              'knockout', 4),
-  ('1/16 finału',              'knockout', 5),
+  ('1/16 finału',              'knockout', 4),
+  ('1/8 finału',               'knockout', 5),
   ('Ćwierćfinały',             'knockout', 6),
   ('Półfinały',                'knockout', 7),
   ('Finał',                    'knockout', 8);

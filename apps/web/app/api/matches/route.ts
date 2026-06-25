@@ -3,8 +3,8 @@ import pool from '@/lib/db'
 import type { RowDataPacket } from 'mysql2'
 
 const ROUND_NAMES: Record<string, string> = {
-  '1/32 finalu':  '1/32 finału',
-  '1/16 finalu':  '1/16 finału',
+  '1/32 finalu':  '1/16 finału',  // stara nazwa w DB → poprawna
+  '1/16 finalu':  '1/8 finału',   // stara nazwa w DB → poprawna
   'Cwiercfinaly': 'Ćwierćfinały',
   'Polfinaly':    'Półfinały',
   'Final':        'Finał',
