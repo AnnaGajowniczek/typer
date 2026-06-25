@@ -9,7 +9,7 @@ async function requireAdmin() {
   return session
 }
 
-// Bracket template for 1/32 finału (matches ordered by starts_at, index 0-15)
+// Bracket template for 1/16 finału (matches ordered by starts_at, index 0-15)
 // null = slot for best 3rd-place team
 const BRACKET: Array<[string | null, number | null, string | null, number | null]> = [
   ['A', 1, 'B', 2],
@@ -114,10 +114,10 @@ export async function POST() {
     let awayTeamId: number | null = null
 
     if (hRank === 3) {
-      // slot 3. miejsca
+      // slot 3. miejsca — zawsze przesuwamy indeks niezależnie od dostępności
       homeTeamId = thirds[thirdIdx]?.team_id ?? null
       awayTeamId = thirds[thirdIdx + 1]?.team_id ?? null
-      if (homeTeamId || awayTeamId) thirdIdx += 2
+      thirdIdx += 2
     } else {
       homeTeamId = hGroup ? (resolved[`${hGroup}${hRank}`] ?? null) : null
       awayTeamId = aGroup ? (resolved[`${aGroup}${aRank}`] ?? null) : null
