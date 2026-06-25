@@ -55,6 +55,8 @@ export default function AdminPage() {
   const [resetForm, setResetForm] = useState<Record<number, string>>({})
   const [resetMsg, setResetMsg] = useState<Record<number, string>>({})
   const [registrationOpen, setRegistrationOpen] = useState<boolean | null>(null)
+  const [fillMsg, setFillMsg] = useState('')
+  const [filling, setFilling] = useState(false)
 
   useEffect(() => {
     try {
@@ -160,6 +162,32 @@ export default function AdminPage() {
     setTimeout(() => setSaved(null), 2000)
   }
 
+  async function fillPlayoffs() {
+    setFilling(true)
+    setFillMsg('')
+    const res = await fetch('/api/admin/fill-playoffs', { method: 'POST' })
+    const data = await res.json()
+    setFillMsg(data.message ?? data.error)
+    setFilling(false)
+    if (res.ok) {
+      fetch('/api/matches').then(r => r.json()).then((rounds: Round[]) => {
+        setRounds(rounds)
+        const next: EditMap = { ...edits }
+        for (const round of rounds) {
+          for (const m of round.matches) {
+            if (!next[m.id]) {
+              next[m.id] = { home: '', away: '', status: m.status, home_team_id: m.home_team_id, away_team_id: m.away_team_id }
+            } else {
+              next[m.id] = { ...next[m.id], home_team_id: m.home_team_id, away_team_id: m.away_team_id }
+            }
+          }
+        }
+        setEdits(next)
+        setOriginal(next)
+      })
+    }
+  }
+
   async function toggleRegistration() {
     const next = !registrationOpen
     setRegistrationOpen(next)
@@ -221,6 +249,27 @@ export default function AdminPage() {
                 {registrationOpen ? 'Otwarta' : 'Zamknięta'}
               </span>
             </label>
+          </div>
+        </section>
+
+        {/* Playoffy */}
+        <section>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#2e3192]">Playoffy</div>
+            <div className="flex-1 h-px bg-[#2e3192]/[0.06]" />
+          </div>
+          <div className="rounded-xl px-4 py-3 bg-[#2e3192]/[0.03] border border-[#2e3192]/10 flex items-center gap-4">
+            <span className="text-sm flex-1">Uzupełnij drabinkę o drużyny z zakończonych grup</span>
+            <div className="flex items-center gap-3 shrink-0">
+              {fillMsg && <span className="text-xs text-[#2e3192]">{fillMsg}</span>}
+              <button
+                onClick={fillPlayoffs}
+                disabled={filling}
+                className="text-xs bg-[#2e3192] hover:bg-blue-900 disabled:opacity-40 text-white font-semibold px-4 py-2 rounded-lg transition"
+              >
+                {filling ? '…' : 'Uzupełnij playoffy'}
+              </button>
+            </div>
           </div>
         </section>
 
