@@ -153,6 +153,8 @@ JOIN rounds r  ON r.order_nr = m.rnd;
 
 -- Mecze pucharowe (bez drużyn — admin przypisze po fazie grupowej)
 INSERT INTO matches (round_id, starts_at) VALUES
+((SELECT id FROM rounds WHERE order_nr=4), '2026-06-28 18:00:00'),
+((SELECT id FROM rounds WHERE order_nr=4), '2026-06-28 21:00:00'),
 ((SELECT id FROM rounds WHERE order_nr=4), '2026-06-29 18:00:00'),
 ((SELECT id FROM rounds WHERE order_nr=4), '2026-06-29 21:00:00'),
 ((SELECT id FROM rounds WHERE order_nr=4), '2026-06-30 18:00:00'),
@@ -167,8 +169,6 @@ INSERT INTO matches (round_id, starts_at) VALUES
 ((SELECT id FROM rounds WHERE order_nr=4), '2026-07-04 21:00:00'),
 ((SELECT id FROM rounds WHERE order_nr=4), '2026-07-05 18:00:00'),
 ((SELECT id FROM rounds WHERE order_nr=4), '2026-07-05 21:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-06 18:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-06 21:00:00'),
 ((SELECT id FROM rounds WHERE order_nr=5), '2026-07-09 18:00:00'),
 ((SELECT id FROM rounds WHERE order_nr=5), '2026-07-09 21:00:00'),
 ((SELECT id FROM rounds WHERE order_nr=5), '2026-07-10 18:00:00'),
