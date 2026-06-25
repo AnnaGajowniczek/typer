@@ -67,6 +67,15 @@ async function setup() {
       SET m.starts_at = '2026-06-16 01:00:00'
       WHERE t1.name = 'Iran' AND m.starts_at = '2026-06-16 04:00:00'
     `)
+    // Korekta dat 1/16 finału: przesuń z 1-8 lipca na 29 czerwca - 6 lipca
+    await conn.query(`
+      UPDATE matches m
+      JOIN rounds r ON m.round_id = r.id
+      SET m.starts_at = DATE_SUB(m.starts_at, INTERVAL 2 DAY)
+      WHERE r.order_nr = 4
+        AND m.starts_at >= '2026-07-01'
+        AND m.starts_at <= '2026-07-08 23:59:59'
+    `)
     console.log('[setup-db] Korekty godzin meczów zastosowane')
 
     const [[{ count }]] = await conn.query('SELECT COUNT(*) as count FROM rounds')
