@@ -110,19 +110,26 @@ export async function POST() {
   }
   const allFixtures: ApiFixture[] = []
 
-  const results = await Promise.all(dates.map(date =>
-    fetch(`https://v3.football.api-sports.io/fixtures?date=${date}`, {
-      headers: {
-        'x-rapidapi-host': 'v3.football.api-sports.io',
-        'x-rapidapi-key': apiKey,
-      },
-    }).then(res => res.ok ? res.json() : null).catch(() => null)
-  ))
+  const apiResponses = await Promise.all(dates.map(async date => {
+    try {
+      const res = await fetch(`https://v3.football.api-sports.io/fixtures?date=${date}`, {
+        headers: {
+          'x-rapidapi-host': 'v3.football.api-sports.io',
+          'x-rapidapi-key': apiKey,
+        },
+      })
+      const body = await res.json().catch(() => null)
+      return { date, status: res.status, count: Array.isArray(body?.response) ? body.response.length : 0, body }
+    } catch (e) {
+      return { date, status: 0, count: 0, error: String(e), body: null }
+    }
+  }))
 
-  for (const data of results) {
-    if (!data?.response) continue
-    allFixtures.push(...(data.response as ApiFixture[]))
+  for (const r of apiResponses) {
+    if (r.body?.response) allFixtures.push(...(r.body.response as ApiFixture[]))
   }
+
+  const apiDebug = apiResponses.map(r => `${r.date}: HTTP ${r.status}, fixtures: ${r.count}`)
 
   // Pobierz wszystkie drużyny z DB (nazwa → id)
   const [teamRows] = await pool.execute('SELECT id, name FROM teams') as [RowDataPacket[], unknown]
@@ -133,9 +140,11 @@ export async function POST() {
 
   if (allFixtures.length === 0) {
     return NextResponse.json({
-      message: `API nie zwróciło żadnych meczów dla dat: ${dates.join(', ')}`,
+      message: `API nie zwróciło żadnych meczów. Sprawdź apiDebug po szczegóły.`,
       updated: 0,
       dates,
+      apiDebug,
+      firstResponseSample: apiResponses[0]?.body,
     })
   }
 
