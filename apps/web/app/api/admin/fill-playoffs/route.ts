@@ -139,8 +139,10 @@ export async function POST() {
   }
 
   if (allFixtures.length === 0) {
+    const summary = apiResponses.slice(0, 3).map(r => `${r.date}→HTTP${r.status}(${r.count}fix)`).join(', ')
+    const errMsg = (apiResponses[0]?.body as Record<string,unknown> | null)?.message ?? apiResponses[0]?.body?.errors
     return NextResponse.json({
-      message: `API nie zwróciło żadnych meczów. Sprawdź apiDebug po szczegóły.`,
+      message: `Brak meczów. API: ${summary}${errMsg ? ` | ${JSON.stringify(errMsg)}` : ''}`,
       updated: 0,
       dates,
       apiDebug,
