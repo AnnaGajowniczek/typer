@@ -139,15 +139,11 @@ export async function POST() {
   }
 
   if (allFixtures.length === 0) {
-    const summary = apiResponses.slice(0, 3).map(r => `${r.date}→HTTP${r.status}(${r.count}fix)`).join(', ')
-    const errMsg = (apiResponses[0]?.body as Record<string,unknown> | null)?.message ?? apiResponses[0]?.body?.errors
-    return NextResponse.json({
-      message: `Brak meczów. API: ${summary}${errMsg ? ` | ${JSON.stringify(errMsg)}` : ''}`,
-      updated: 0,
-      dates,
-      apiDebug,
-      firstResponseSample: apiResponses[0]?.body,
-    })
+    const planError = apiResponses.find(r => r.body?.errors?.plan)?.body?.errors?.plan as string | undefined
+    const message = planError
+      ? `Darmowy plan API nie obsługuje tych dat. ${planError} Przypisz drużyny ręcznie lub uruchom ponownie w dniu meczu.`
+      : `API zwróciło 0 meczów dla dat: ${dates.slice(0, 3).join(', ')}…`
+    return NextResponse.json({ message, updated: 0, dates, apiDebug })
   }
 
   let updated = 0
