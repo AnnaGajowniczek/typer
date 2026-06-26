@@ -121,19 +121,7 @@ export async function POST() {
 
   for (const data of results) {
     if (!data?.response) continue
-    // Filtruj World Cup (league ID=1) lub po nazwie jako fallback
-    const wcFixtures = (data.response as ApiFixture[]).filter(f =>
-      f.league?.id === 1 || f.league?.name?.toLowerCase().includes('world cup')
-    )
-    allFixtures.push(...wcFixtures)
-  }
-
-  if (allFixtures.length === 0) {
-    return NextResponse.json({
-      message: 'API nie zwróciło żadnych meczów World Cup dla podanych dat.',
-      updated: 0,
-      dates,
-    })
+    allFixtures.push(...(data.response as ApiFixture[]))
   }
 
   // Pobierz wszystkie drużyny z DB (nazwa → id)
@@ -141,6 +129,14 @@ export async function POST() {
   const teamByName: Record<string, number> = {}
   for (const t of teamRows as RowDataPacket[]) {
     teamByName[t.name] = t.id
+  }
+
+  if (allFixtures.length === 0) {
+    return NextResponse.json({
+      message: `API nie zwróciło żadnych meczów dla dat: ${dates.join(', ')}`,
+      updated: 0,
+      dates,
+    })
   }
 
   let updated = 0
@@ -153,10 +149,11 @@ export async function POST() {
     const homeTeamId = teamByName[homeNamePl] ?? null
     const awayTeamId = teamByName[awayNamePl] ?? null
 
-    if (!homeTeamId) notFound.push(fixture.teams.home.name)
-    if (!awayTeamId) notFound.push(fixture.teams.away.name)
-
-    if (!homeTeamId && !awayTeamId) continue
+    // Pomijaj mecze gdzie żadna lub tylko jedna drużyna to drużyna MŚ
+    if (!homeTeamId || !awayTeamId) {
+      if (homeTeamId || awayTeamId) notFound.push(`${fixture.teams.home.name} vs ${fixture.teams.away.name}`)
+      continue
+    }
 
     // Znajdź mecz w DB po dacie (tolerancja ±2h)
     const fixtureDate = new Date(fixture.fixture.date)
