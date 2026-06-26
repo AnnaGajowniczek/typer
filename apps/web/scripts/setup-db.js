@@ -67,22 +67,48 @@ async function setup() {
       SET m.starts_at = '2026-06-16 01:00:00'
       WHERE t1.name = 'Iran' AND m.starts_at = '2026-06-16 04:00:00'
     `)
-    // Korekta dat 1/16 finału: docelowo 28 czerwca - 5 lipca
-    // Obsługuje oba stany: oryginalny seed (1-8 lip) i po 1. korekcie (29 cze - 6 lip)
-    await conn.query(`
-      UPDATE matches m
-      JOIN rounds r ON m.round_id = r.id
-      SET m.starts_at = CASE
-        WHEN DATE(m.starts_at) BETWEEN '2026-07-01' AND '2026-07-08'
-          THEN DATE_SUB(m.starts_at, INTERVAL 3 DAY)
-        WHEN DATE(m.starts_at) BETWEEN '2026-06-29' AND '2026-07-06'
-          THEN DATE_SUB(m.starts_at, INTERVAL 1 DAY)
-        ELSE m.starts_at
-      END
-      WHERE r.order_nr = 4
-        AND DATE(m.starts_at) NOT BETWEEN '2026-06-28' AND '2026-07-05'
-    `)
-    console.log('[setup-db] Korekty godzin meczów zastosowane')
+    // Korekta dat wszystkich rund playoff wg oficjalnego harmonogramu FIFA
+    // Idempotentna: sortuje mecze po starts_at i przypisuje dokładne godziny
+    const playoffFixes = {
+      4: [ // 1/16 finału: 28 cze – 4 lip
+        '2026-06-28 19:00:00', '2026-06-29 17:00:00', '2026-06-29 20:30:00',
+        '2026-06-30 01:00:00', '2026-06-30 17:00:00', '2026-06-30 21:00:00',
+        '2026-07-01 01:00:00', '2026-07-01 16:00:00', '2026-07-01 20:00:00',
+        '2026-07-02 00:00:00', '2026-07-02 19:00:00', '2026-07-02 23:00:00',
+        '2026-07-03 03:00:00', '2026-07-03 18:00:00', '2026-07-03 22:00:00',
+        '2026-07-04 01:30:00',
+      ],
+      5: [ // 1/8 finału: 4–7 lip
+        '2026-07-04 17:00:00', '2026-07-04 21:00:00',
+        '2026-07-05 20:00:00', '2026-07-06 00:00:00',
+        '2026-07-06 19:00:00', '2026-07-07 00:00:00',
+        '2026-07-07 16:00:00', '2026-07-07 20:00:00',
+      ],
+      6: [ // Ćwierćfinały: 9–12 lip
+        '2026-07-09 20:00:00', '2026-07-10 19:00:00',
+        '2026-07-11 21:00:00', '2026-07-12 01:00:00',
+      ],
+      7: [ // Półfinały: 14–15 lip
+        '2026-07-14 19:00:00', '2026-07-15 19:00:00',
+      ],
+      8: [ // Finał: 19 lip
+        '2026-07-19 19:00:00',
+      ],
+    }
+    for (const [orderNr, dates] of Object.entries(playoffFixes)) {
+      const caseWhen = dates.map((d, i) => `WHEN ${i + 1} THEN '${d}'`).join(' ')
+      await conn.query(`
+        UPDATE matches m
+        JOIN (
+          SELECT id, ROW_NUMBER() OVER (ORDER BY starts_at, id) AS rn
+          FROM matches
+          WHERE round_id = (SELECT id FROM rounds WHERE order_nr = ${Number(orderNr)})
+        ) ranked ON m.id = ranked.id
+        SET m.starts_at = CASE ranked.rn ${caseWhen} END
+        WHERE m.round_id = (SELECT id FROM rounds WHERE order_nr = ${Number(orderNr)})
+      `)
+    }
+    console.log('[setup-db] Korekty dat playoff zastosowane')
 
     const [[{ count }]] = await conn.query('SELECT COUNT(*) as count FROM rounds')
     if (Number(count) === 0) {
