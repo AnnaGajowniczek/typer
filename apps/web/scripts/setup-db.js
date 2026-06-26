@@ -110,6 +110,58 @@ async function setup() {
     }
     console.log('[setup-db] Korekty dat playoff zastosowane')
 
+    // Dodaj kolumnę bracket_pos jeśli nie istnieje
+    try {
+      await conn.query('ALTER TABLE matches ADD COLUMN bracket_pos SMALLINT NULL')
+      console.log('[setup-db] Dodano kolumnę bracket_pos')
+    } catch (e) { /* kolumna już istnieje */ }
+
+    // Ustaw bracket_pos dla meczów playoff po skorygowanych czasach
+    // Kolejność wg oficjalnej drabinki FIFA MŚ 2026 (pary: pos1+pos2→R16#1, itp.)
+    const bracketPositions = [
+      // [order_nr, starts_at, bracket_pos]
+      [4, '2026-06-29 20:30:00',  1],
+      [4, '2026-06-30 21:00:00',  2],
+      [4, '2026-06-28 19:00:00',  3],
+      [4, '2026-06-30 01:00:00',  4],
+      [4, '2026-06-29 17:00:00',  5],
+      [4, '2026-06-30 17:00:00',  6],
+      [4, '2026-07-01 01:00:00',  7],
+      [4, '2026-07-01 16:00:00',  8],
+      [4, '2026-07-02 23:00:00',  9],
+      [4, '2026-07-02 19:00:00', 10],
+      [4, '2026-07-02 00:00:00', 11],
+      [4, '2026-07-01 20:00:00', 12],
+      [4, '2026-07-03 03:00:00', 13],
+      [4, '2026-07-04 01:30:00', 14],
+      [4, '2026-07-03 22:00:00', 15],
+      [4, '2026-07-03 18:00:00', 16],
+      [5, '2026-07-04 21:00:00',  1],
+      [5, '2026-07-04 17:00:00',  2],
+      [5, '2026-07-05 20:00:00',  3],
+      [5, '2026-07-06 00:00:00',  4],
+      [5, '2026-07-06 19:00:00',  5],
+      [5, '2026-07-07 00:00:00',  6],
+      [5, '2026-07-07 20:00:00',  7],
+      [5, '2026-07-07 16:00:00',  8],
+      [6, '2026-07-09 20:00:00',  1],
+      [6, '2026-07-11 21:00:00',  2],
+      [6, '2026-07-10 19:00:00',  3],
+      [6, '2026-07-12 01:00:00',  4],
+      [7, '2026-07-14 19:00:00',  1],
+      [7, '2026-07-15 19:00:00',  2],
+      [8, '2026-07-19 19:00:00',  1],
+    ]
+    for (const [orderNr, startsAt, pos] of bracketPositions) {
+      await conn.query(
+        `UPDATE matches SET bracket_pos = ?
+         WHERE round_id = (SELECT id FROM rounds WHERE order_nr = ?)
+           AND starts_at = ?`,
+        [pos, orderNr, startsAt]
+      )
+    }
+    console.log('[setup-db] Pozycje drabinkowe (bracket_pos) ustawione')
+
     const [[{ count }]] = await conn.query('SELECT COUNT(*) as count FROM rounds')
     if (Number(count) === 0) {
       console.log('[setup-db] Seeding data...')

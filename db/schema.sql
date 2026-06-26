@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS matches (
     home_score   SMALLINT,
     away_score   SMALLINT,
     status       VARCHAR(20) NOT NULL DEFAULT 'upcoming',
+    bracket_pos  SMALLINT,
     FOREIGN KEY (round_id) REFERENCES rounds(id),
     FOREIGN KEY (home_team_id) REFERENCES teams(id),
     FOREIGN KEY (away_team_id) REFERENCES teams(id),

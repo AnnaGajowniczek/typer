@@ -152,41 +152,42 @@ JOIN teams at_ ON at_.name = m.away
 JOIN rounds r  ON r.order_nr = m.rnd;
 
 -- Mecze pucharowe (bez drużyn — admin przypisze po fazie grupowej)
+-- Kolejność wg bracket_pos (pozycja w drabince), nie chronologiczna
 -- Godziny UTC wg oficjalnego harmonogramu FIFA (Sky Sports / FIFA.com)
-INSERT INTO matches (round_id, starts_at) VALUES
--- 1/16 finału: 28 cze – 4 lip
-((SELECT id FROM rounds WHERE order_nr=4), '2026-06-28 19:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-06-29 17:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-06-29 20:30:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-06-30 01:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-06-30 17:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-06-30 21:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-01 01:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-01 16:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-01 20:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-02 00:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-02 19:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-02 23:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-03 03:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-03 18:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-03 22:00:00'),
-((SELECT id FROM rounds WHERE order_nr=4), '2026-07-04 01:30:00'),
--- 1/8 finału: 4–7 lip
-((SELECT id FROM rounds WHERE order_nr=5), '2026-07-04 17:00:00'),
-((SELECT id FROM rounds WHERE order_nr=5), '2026-07-04 21:00:00'),
-((SELECT id FROM rounds WHERE order_nr=5), '2026-07-05 20:00:00'),
-((SELECT id FROM rounds WHERE order_nr=5), '2026-07-06 00:00:00'),
-((SELECT id FROM rounds WHERE order_nr=5), '2026-07-06 19:00:00'),
-((SELECT id FROM rounds WHERE order_nr=5), '2026-07-07 00:00:00'),
-((SELECT id FROM rounds WHERE order_nr=5), '2026-07-07 16:00:00'),
-((SELECT id FROM rounds WHERE order_nr=5), '2026-07-07 20:00:00'),
--- Ćwierćfinały: 9–12 lip
-((SELECT id FROM rounds WHERE order_nr=6), '2026-07-09 20:00:00'),
-((SELECT id FROM rounds WHERE order_nr=6), '2026-07-10 19:00:00'),
-((SELECT id FROM rounds WHERE order_nr=6), '2026-07-11 21:00:00'),
-((SELECT id FROM rounds WHERE order_nr=6), '2026-07-12 01:00:00'),
--- Półfinały: 14–15 lip
-((SELECT id FROM rounds WHERE order_nr=7), '2026-07-14 19:00:00'),
-((SELECT id FROM rounds WHERE order_nr=7), '2026-07-15 19:00:00'),
--- Finał: 19 lip
-((SELECT id FROM rounds WHERE order_nr=8), '2026-07-19 19:00:00');
+INSERT INTO matches (round_id, starts_at, bracket_pos) VALUES
+-- 1/16 finału — bracket_pos 1–16 (pary: 1+2→R16#1, 3+4→R16#2, …)
+((SELECT id FROM rounds WHERE order_nr=4), '2026-06-29 20:30:00',  1),  -- Niemcy / 3. miejsce
+((SELECT id FROM rounds WHERE order_nr=4), '2026-06-30 21:00:00',  2),  -- Zw. gr.I / 3. miejsce
+((SELECT id FROM rounds WHERE order_nr=4), '2026-06-28 19:00:00',  3),  -- RPA / Kanada
+((SELECT id FROM rounds WHERE order_nr=4), '2026-06-30 01:00:00',  4),  -- Zw. gr.F / Maroko
+((SELECT id FROM rounds WHERE order_nr=4), '2026-06-29 17:00:00',  5),  -- Brazylia / 2. gr.F
+((SELECT id FROM rounds WHERE order_nr=4), '2026-06-30 17:00:00',  6),  -- W. Kości Słon. / 2. gr.I
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-01 01:00:00',  7),  -- Meksyk / 3. miejsce
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-01 16:00:00',  8),  -- Zw. gr.L / 3. miejsce
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-02 23:00:00',  9),  -- 2. gr.K / 2. gr.L
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-02 19:00:00', 10),  -- Zw. gr.H / 2. gr.J
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-02 00:00:00', 11),  -- USA / 3. miejsce
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-01 20:00:00', 12),  -- Zw. gr.G / 3. miejsce
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-03 03:00:00', 13),  -- Szwajcaria / 3. miejsce
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-04 01:30:00', 14),  -- Zw. gr.K / 3. miejsce
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-03 22:00:00', 15),  -- Argentyna / 2. gr.H
+((SELECT id FROM rounds WHERE order_nr=4), '2026-07-03 18:00:00', 16),  -- 2. gr.D / 2. gr.G
+-- 1/8 finału — bracket_pos 1–8 (pary: 1+2→QF#1, 3+4→QF#2, …)
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-04 21:00:00',  1),  -- W#1 vs W#2
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-04 17:00:00',  2),  -- W#3 vs W#4
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-05 20:00:00',  3),  -- W#5 vs W#6
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-06 00:00:00',  4),  -- W#7 vs W#8
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-06 19:00:00',  5),  -- W#9 vs W#10
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-07 00:00:00',  6),  -- W#11 vs W#12
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-07 20:00:00',  7),  -- W#13 vs W#14
+((SELECT id FROM rounds WHERE order_nr=5), '2026-07-07 16:00:00',  8),  -- W#15 vs W#16
+-- Ćwierćfinały — bracket_pos 1–4
+((SELECT id FROM rounds WHERE order_nr=6), '2026-07-09 20:00:00',  1),  -- W R16#1 vs W R16#2
+((SELECT id FROM rounds WHERE order_nr=6), '2026-07-11 21:00:00',  2),  -- W R16#3 vs W R16#4
+((SELECT id FROM rounds WHERE order_nr=6), '2026-07-10 19:00:00',  3),  -- W R16#5 vs W R16#6
+((SELECT id FROM rounds WHERE order_nr=6), '2026-07-12 01:00:00',  4),  -- W R16#7 vs W R16#8
+-- Półfinały — bracket_pos 1–2
+((SELECT id FROM rounds WHERE order_nr=7), '2026-07-14 19:00:00',  1),  -- W QF#1 vs W QF#2
+((SELECT id FROM rounds WHERE order_nr=7), '2026-07-15 19:00:00',  2),  -- W QF#3 vs W QF#4
+-- Finał
+((SELECT id FROM rounds WHERE order_nr=8), '2026-07-19 19:00:00',  1);
