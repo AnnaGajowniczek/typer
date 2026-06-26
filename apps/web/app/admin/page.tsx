@@ -165,9 +165,10 @@ export default function AdminPage() {
   async function fillPlayoffs() {
     setFilling(true)
     setFillMsg('')
+    try {
     const res = await fetch('/api/admin/fill-playoffs', { method: 'POST' })
     const data = await res.json()
-    setFillMsg(data.message ?? data.error)
+    setFillMsg(data.message ?? data.error ?? 'Nieznany błąd serwera.')
     setFilling(false)
     if (res.ok) {
       fetch('/api/matches').then(r => r.json()).then((rounds: Round[]) => {
@@ -185,6 +186,10 @@ export default function AdminPage() {
         setEdits(next)
         setOriginal(next)
       })
+    }
+    } catch (err) {
+      setFillMsg('Błąd połączenia z serwerem.')
+      setFilling(false)
     }
   }
 

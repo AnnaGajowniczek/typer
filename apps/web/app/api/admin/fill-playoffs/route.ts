@@ -79,46 +79,51 @@ export async function POST() {
 
   const apiKey = process.env.RAPID_API_KEY
   if (!apiKey) {
-    return NextResponse.json({ error: 'Brak klucza RAPID_API_KEY.' }, { status: 500 })
+    return NextResponse.json({ error: 'Brak klucza RAPID_API_KEY w środowisku serwera.' }, { status: 500 })
   }
 
-  // Pobierz wszystkie mecze fazy pucharowej z DB (z datami)
+  try {
+  // Pobierz mecze pucharowe bez przypisanych drużyn
   const [dbMatches] = await pool.execute(`
     SELECT m.id, m.starts_at, r.order_nr
     FROM matches m
     JOIN rounds r ON m.round_id = r.id
     WHERE r.stage = 'knockout'
+      AND (m.home_team_id IS NULL OR m.away_team_id IS NULL)
     ORDER BY m.starts_at
   `) as [RowDataPacket[], unknown]
+
+  if ((dbMatches as RowDataPacket[]).length === 0) {
+    return NextResponse.json({ message: 'Wszystkie mecze pucharowe mają już przypisane drużyny.', updated: 0 })
+  }
 
   // Unikalne daty do zapytania do API
   const dates = [...new Set((dbMatches as RowDataPacket[]).map(m =>
     new Date(m.starts_at).toISOString().slice(0, 10)
   ))]
 
-  // Pobierz fixtures z API dla każdej daty
-  const allFixtures: {
+  // Pobierz fixtures z API równolegle dla wszystkich dat
+  type ApiFixture = {
     fixture: { id: number; date: string }
-    league: { id: number; name: string }
+    league: { id: number; name: string } | null
     teams: { home: { name: string }; away: { name: string } }
-  }[] = []
+  }
+  const allFixtures: ApiFixture[] = []
 
-  for (const date of dates) {
-    const res = await fetch(
-      `https://v3.football.api-sports.io/fixtures?date=${date}`,
-      {
-        headers: {
-          'x-rapidapi-host': 'v3.football.api-sports.io',
-          'x-rapidapi-key': apiKey,
-        },
-      }
-    )
-    if (!res.ok) continue
-    const data = await res.json()
+  const results = await Promise.all(dates.map(date =>
+    fetch(`https://v3.football.api-sports.io/fixtures?date=${date}`, {
+      headers: {
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+        'x-rapidapi-key': apiKey,
+      },
+    }).then(res => res.ok ? res.json() : null).catch(() => null)
+  ))
 
+  for (const data of results) {
+    if (!data?.response) continue
     // Filtruj World Cup (league ID=1) lub po nazwie jako fallback
-    const wcFixtures = (data.response ?? []).filter((f: { league: { id: number; name: string } }) =>
-      f.league.id === 1 || f.league.name?.toLowerCase().includes('world cup')
+    const wcFixtures = (data.response as ApiFixture[]).filter(f =>
+      f.league?.id === 1 || f.league?.name?.toLowerCase().includes('world cup')
     )
     allFixtures.push(...wcFixtures)
   }
@@ -181,4 +186,9 @@ export async function POST() {
     fixturesFromApi: allFixtures.length,
     notFound: [...new Set(notFound)],
   })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[fill-playoffs]', msg)
+    return NextResponse.json({ error: `Błąd serwera: ${msg}` }, { status: 500 })
+  }
 }
