@@ -173,9 +173,12 @@ export default function TypowaniePage() {
         </div>
 
         {rounds.map(round => {
-          const visibleMatches = hideFinished
-            ? round.matches.filter(m => m.status !== 'finished')
+          const sortedMatches = round.stage === 'knockout'
+            ? [...round.matches].sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
             : round.matches
+          const visibleMatches = hideFinished
+            ? sortedMatches.filter(m => m.status !== 'finished')
+            : sortedMatches
           if (visibleMatches.length === 0) return null
           const isCollapsed = !!collapsed[round.id]
           return (
