@@ -25,6 +25,7 @@ export async function GET() {
       m.away_score,
       m.home_team_id,
       m.away_team_id,
+      m.bracket_pos,
       ht.name AS home_team,
       at_.name AS away_team,
       r.id AS round_id,
@@ -37,10 +38,7 @@ export async function GET() {
     LEFT JOIN teams at_ ON at_.id = m.away_team_id
     JOIN rounds r  ON r.id   = m.round_id
     LEFT JOIN \`groups\` g ON g.id = ht.group_id
-    ORDER BY r.order_nr,
-             CASE WHEN r.stage = 'knockout' AND m.bracket_pos IS NOT NULL
-                  THEN m.bracket_pos ELSE 99999 END,
-             m.starts_at
+    ORDER BY r.order_nr, m.starts_at
   `) as [import("mysql2").RowDataPacket[], unknown]
 
   const roundMap: Record<number, { id: number; name: string; stage: string; order_nr: number; matches: unknown[] }> = {}
@@ -65,6 +63,7 @@ export async function GET() {
       home_score: row.home_score,
       away_score: row.away_score,
       group_name: row.group_name,
+      bracket_pos: row.bracket_pos ?? null,
     })
   }
 

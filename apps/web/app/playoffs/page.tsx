@@ -14,6 +14,7 @@ type Match = {
   away_team: string | null
   home_score: number | null
   away_score: number | null
+  bracket_pos: number | null
 }
 
 type Round = {
@@ -119,7 +120,12 @@ export default function PlayoffsPage() {
     fetch('/api/matches')
       .then(r => r.json())
       .then((data: Round[]) => {
-        setRounds(data.filter(r => r.stage === 'knockout').sort((a, b) => a.order_nr - b.order_nr))
+        setRounds(data.filter(r => r.stage === 'knockout').sort((a, b) => a.order_nr - b.order_nr).map(r => ({
+          ...r,
+          matches: [...r.matches].sort((a, b) =>
+            (a.bracket_pos ?? 999) - (b.bracket_pos ?? 999) || new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+          ),
+        })))
         setLoading(false)
       })
   }, [])
