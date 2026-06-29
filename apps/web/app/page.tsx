@@ -97,6 +97,11 @@ export default function HomePage() {
           )}
         </div>
 
+        {/* Disclaimer */}
+        <div className="rounded-xl bg-[#2e3192]/[0.04] border border-[#2e3192]/10 px-4 py-3 text-xs text-[#434351]/60 text-center">
+          Do punktacji liczy się wynik uzyskany w regulaminowym czasie gry (90 min + doliczony czas), <strong className="text-[#434351]/80">bez dogrywki i rzutów karnych</strong>.
+        </div>
+
         {/* Nadchodzące mecze */}
         {upcoming.length > 0 && (
           <section>
